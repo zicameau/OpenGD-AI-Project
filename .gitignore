@@ -46,6 +46,7 @@ build-docs/
 bin
 out
 venv
+executable
 /proj.android/.idea/*
 /proj.android/app/.cxx/*
 /proj.android/app/src/org/axmol/lib
