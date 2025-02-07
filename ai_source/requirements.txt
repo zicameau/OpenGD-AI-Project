@@ -17,7 +17,8 @@ numpy==2.2.2
 opencv-python==4.11.0.86
 packaging==24.2
 pillow==11.1.0
-psycopg2==2.9.10
+psutil==6.1.1
+psycopg2-binary
 PyAutoGUI==0.9.54
 PyGetWindow==0.0.9
 PyMsgBox==1.0.9
@@ -27,5 +28,6 @@ PyRect==0.2.0
 PyScreeze==1.0.1
 python-dateutil==2.9.0.post0
 pytweening==1.2.0
+pywin32
 six==1.17.0
 Werkzeug==3.1.3
