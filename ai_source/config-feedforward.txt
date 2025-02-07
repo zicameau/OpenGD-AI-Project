@@ -1,0 +1,11 @@
+[NEAT]
+pop_size = 100  # Number of AI instances per generation
+fitness_threshold = 500  # Score required to "win"
+reset_on_extinction = False
+
+[DefaultGenome]
+num_inputs = 10  # Inputs: Pixels, distances, obstacles
+num_outputs = 1  # Output: Jump or not
+activation_default = sigmoid
+aggregation_default = sum
+fitness_criterion = max
