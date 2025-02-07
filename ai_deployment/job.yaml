@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neat-training-job
+spec:
+  parallelism: 100  # Run 100 AI instances
+  completions: 1000 # Train 1000 genomes
+  template:
+    spec:
+      containers:
+      - name: ai-trainer
+        image: rowdeil/neat-geometry-dash:latest
+        command: ["python", "train.py"]
+      restartPolicy: Never
