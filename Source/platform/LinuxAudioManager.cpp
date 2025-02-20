@@ -2,6 +2,8 @@
 #include <iostream>
 #include <pulse/error.h>
 #include <cstring>
+#include <stdexcept>
+#include <syslog.h>
 
 LinuxAudioManager* LinuxAudioManager::_instance = nullptr;
 
@@ -12,63 +14,66 @@ LinuxAudioManager* LinuxAudioManager::getInstance() {
     return _instance;
 }
 
-bool LinuxAudioManager::init() {
-    // Try PulseAudio first
-    if (initPulseAudio()) {
-        _usePulseAudio = true;
-        std::cout << "Using PulseAudio for sound output" << std::endl;
-        return true;
-    }
-    
-    // Fallback to ALSA
-    if (initAlsa()) {
-        _usePulseAudio = false;
-        std::cout << "Using ALSA for sound output" << std::endl;
-        return true;
-    }
-    
-    std::cerr << "Failed to initialize audio system" << std::endl;
-    return false;
+LinuxAudioManager::LinuxAudioManager() {
+    // Initialize with PulseAudio as primary, ALSA as fallback
 }
 
-bool LinuxAudioManager::initPulseAudio() {
-    _mainloop = pa_mainloop_new();
-    if (!_mainloop) {
-        return false;
-    }
+bool LinuxAudioManager::initializeAudio() {
+    std::lock_guard<std::mutex> lock(_audioMutex);
+    try {
+        // Try PulseAudio first
+        if (initializePulseAudio()) {
+            _usePulseAudio = true;
+            setupDeviceMonitoring();
+            return true;
+        }
 
-    _context = pa_context_new(pa_mainloop_get_api(_mainloop), "OpenGD");
-    if (!_context) {
-        pa_mainloop_free(_mainloop);
-        _mainloop = nullptr;
-        return false;
-    }
+        // Fallback to ALSA
+        syslog(LOG_WARNING, "PulseAudio initialization failed, falling back to ALSA");
+        if (initializeAlsa()) {
+            _usePulseAudio = false;
+            return true;
+        }
 
-    // Connect to PulseAudio server
-    if (pa_context_connect(_context, nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-        pa_context_unref(_context);
-        pa_mainloop_free(_mainloop);
-        _context = nullptr;
-        _mainloop = nullptr;
-        return false;
-    }
-
-    // Wait for context to be ready
-    pa_context_state_t state;
-    do {
-        pa_mainloop_iterate(_mainloop, 1, nullptr);
-        state = pa_context_get_state(_context);
-    } while (state != PA_CONTEXT_READY && state != PA_CONTEXT_FAILED);
-
-    if (state != PA_CONTEXT_READY) {
+        throw std::runtime_error("Failed to initialize audio system");
+    } catch (const std::exception& e) {
+        syslog(LOG_ERR, "Audio initialization failed: %s", e.what());
         cleanup();
         return false;
     }
-
-    return true;
 }
 
-bool LinuxAudioManager::initAlsa() {
+bool LinuxAudioManager::initializePulseAudio() {
+    try {
+        _mainloop = pa_threaded_mainloop_new();
+        if (!_mainloop) {
+            throw std::runtime_error("Failed to create PA mainloop");
+        }
+
+        _context = pa_context_new(pa_threaded_mainloop_get_api(_mainloop),
+                                "OpenGD");
+        if (!_context) {
+            throw std::runtime_error("Failed to create PA context");
+        }
+
+        pa_context_set_state_callback(_context, 
+            [](pa_context* c, void* userdata) {
+                auto* manager = static_cast<LinuxAudioManager*>(userdata);
+                // Handle context state changes
+            }, this);
+
+        if (pa_threaded_mainloop_start(_mainloop) < 0) {
+            throw std::runtime_error("Failed to start PA mainloop");
+        }
+
+        return true;
+    } catch (const std::exception& e) {
+        syslog(LOG_ERR, "PulseAudio initialization failed: %s", e.what());
+        return false;
+    }
+}
+
+bool LinuxAudioManager::initializeAlsa() {
     int err = snd_pcm_open(&_alsaHandle, "default", SND_PCM_STREAM_PLAYBACK, 0);
     if (err < 0) {
         std::cerr << "ALSA error: " << snd_strerror(err) << std::endl;
@@ -105,37 +110,45 @@ error:
     return false;
 }
 
-int LinuxAudioManager::playSound(const std::string& filePath, bool loop) {
-    AudioStream stream;
-    stream.filePath = filePath;
-    stream.isLooping = loop;
-    stream.volume = 1.0f;
-    stream.isPlaying = true;
-    
-    int streamId = _nextStreamId++;
-    _activeStreams[streamId] = stream;
-    
-    if (_usePulseAudio) {
-        // PulseAudio playback implementation
-        pa_stream* paStream = pa_stream_new(_context, "OpenGD Audio", 
-            &pa_sample_spec{
+bool LinuxAudioManager::playSound(const std::string& path) {
+    std::lock_guard<std::mutex> lock(_streamMutex);
+    try {
+        if (_usePulseAudio) {
+            // PulseAudio playback implementation
+            pa_sample_spec spec = {
                 .format = PA_SAMPLE_S16LE,
                 .rate = 44100,
                 .channels = 2
-            }, nullptr);
-            
-        if (paStream) {
-            _activeStreams[streamId].streamData = paStream;
-            // Configure and start stream
-            pa_stream_connect_playback(paStream, nullptr, nullptr, 
-                PA_STREAM_NOFLAGS, nullptr, nullptr);
+            };
+
+            _stream = pa_stream_new(_context, "OpenGD Sound", &spec, nullptr);
+            if (!_stream) {
+                throw std::runtime_error("Failed to create PA stream");
+            }
+
+            // Configure buffer attributes
+            pa_buffer_attr attr = {
+                .maxlength = MAX_BUFFER_SIZE,
+                .tlength = MAX_BUFFER_SIZE / 2,
+                .prebuf = MAX_BUFFER_SIZE / 4,
+                .minreq = MAX_BUFFER_SIZE / 4,
+                .fragsize = MAX_BUFFER_SIZE / 4
+            };
+
+            if (pa_stream_connect_playback(_stream, nullptr, &attr,
+                PA_STREAM_ADJUST_LATENCY, nullptr, nullptr) < 0) {
+                throw std::runtime_error("Failed to connect PA stream");
+            }
+        } else {
+            // ALSA playback implementation
+            // ... ALSA implementation ...
         }
-    } else {
-        // ALSA playback implementation
-        // Implementation details for ALSA playback would go here
+
+        return true;
+    } catch (const std::exception& e) {
+        syslog(LOG_ERR, "Sound playback failed: %s", e.what());
+        return false;
     }
-    
-    return streamId;
 }
 
 void LinuxAudioManager::stopSound(int soundId) {
@@ -155,6 +168,7 @@ void LinuxAudioManager::stopSound(int soundId) {
 }
 
 void LinuxAudioManager::cleanup() {
+    std::lock_guard<std::mutex> lock(_audioMutex);
     // Stop all active streams
     for (const auto& pair : _activeStreams) {
         stopSound(pair.first);
@@ -162,27 +176,22 @@ void LinuxAudioManager::cleanup() {
     _activeStreams.clear();
 
     if (_usePulseAudio) {
-        terminatePulseAudio();
-    } else {
-        terminateAlsa();
-    }
-}
-
-void LinuxAudioManager::terminatePulseAudio() {
-    if (_context) {
-        pa_context_disconnect(_context);
-        pa_context_unref(_context);
-        _context = nullptr;
-    }
-    
-    if (_mainloop) {
-        pa_mainloop_free(_mainloop);
-        _mainloop = nullptr;
-    }
-}
-
-void LinuxAudioManager::terminateAlsa() {
-    if (_alsaHandle) {
+        if (_stream) {
+            pa_stream_disconnect(_stream);
+            pa_stream_unref(_stream);
+            _stream = nullptr;
+        }
+        if (_context) {
+            pa_context_disconnect(_context);
+            pa_context_unref(_context);
+            _context = nullptr;
+        }
+        if (_mainloop) {
+            pa_threaded_mainloop_stop(_mainloop);
+            pa_threaded_mainloop_free(_mainloop);
+            _mainloop = nullptr;
+        }
+    } else if (_alsaHandle) {
         snd_pcm_close(_alsaHandle);
         _alsaHandle = nullptr;
     }

@@ -1,60 +1,51 @@
 #pragma once
+#include <memory>
+#include <mutex>
+#include <string>
+#include <queue>
 #include <pulse/pulseaudio.h>
 #include <alsa/asoundlib.h>
-#include <string>
-#include <map>
-#include <memory>
 
 class LinuxAudioManager {
 public:
-    static LinuxAudioManager* getInstance();
-    
-    bool init();
+    static LinuxAudioManager* getInstance() {
+        static std::once_flag flag;
+        static LinuxAudioManager* instance = nullptr;
+        
+        std::call_once(flag, []() {
+            instance = new LinuxAudioManager();
+        });
+        
+        return instance;
+    }
+
+    bool initializeAudio();
+    bool playSound(const std::string& path);
+    void stopSound();
+    bool setVolume(float volume);
     void cleanup();
+
+    virtual ~LinuxAudioManager();
     
-    // Audio playback control
-    int playSound(const std::string& filePath, bool loop = false);
-    void stopSound(int soundId);
-    void pauseSound(int soundId);
-    void resumeSound(int soundId);
-    
-    // Volume control
-    void setVolume(int soundId, float volume);
-    void setMasterVolume(float volume);
-    
-    // State queries
-    bool isPlaying(int soundId) const;
-    float getCurrentTime(int soundId) const;
+    // Delete copy and move operations
+    LinuxAudioManager(const LinuxAudioManager&) = delete;
+    LinuxAudioManager& operator=(const LinuxAudioManager&) = delete;
+    LinuxAudioManager(LinuxAudioManager&&) = delete;
+    LinuxAudioManager& operator=(LinuxAudioManager&&) = delete;
 
 private:
-    LinuxAudioManager() = default;
-    ~LinuxAudioManager();
-    
-    bool initPulseAudio();
-    bool initAlsa();
-    void terminatePulseAudio();
-    void terminateAlsa();
-    
-    // PulseAudio context
-    pa_mainloop* _mainloop = nullptr;
+    LinuxAudioManager();
+    bool initializePulseAudio();
+    bool initializeAlsa();
+    void setupDeviceMonitoring();
+    bool recoverStream();
+
+    std::mutex _audioMutex;
+    std::mutex _streamMutex;
+    pa_threaded_mainloop* _mainloop = nullptr;
     pa_context* _context = nullptr;
-    
-    // ALSA fallback
+    pa_stream* _stream = nullptr;
     snd_pcm_t* _alsaHandle = nullptr;
-    
     bool _usePulseAudio = true;
-    float _masterVolume = 1.0f;
-    
-    struct AudioStream {
-        std::string filePath;
-        bool isLooping;
-        float volume;
-        bool isPlaying;
-        void* streamData;
-    };
-    
-    std::map<int, AudioStream> _activeStreams;
-    int _nextStreamId = 1;
-    
-    static LinuxAudioManager* _instance;
+    static constexpr size_t MAX_BUFFER_SIZE = 16384;
 }; 
