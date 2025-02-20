@@ -7,6 +7,7 @@ import subprocess
 import platform
 import shutil
 from pathlib import Path
+from analyze_cmake import CMakeAnalyzer, update_project_yml
 
 class ProjectSetup:
     def __init__(self):
@@ -109,6 +110,14 @@ class ProjectSetup:
             shutil.rmtree(build_dir)
         build_dir.mkdir()
     
+    def analyze_cmake(self):
+        print("Analyzing CMake files...")
+        analyzer = CMakeAnalyzer(self.project_root / 'external' / 'axmol')
+        missing_functions = analyzer.analyze()
+        if missing_functions:
+            print(f"Found {len(missing_functions)} missing CMake functions")
+            update_project_yml(missing_functions)
+    
     def setup(self):
         try:
             print(f"Setting up {self.config['name']} project...")
@@ -118,6 +127,9 @@ class ProjectSetup:
             
             # Setup engine
             engine_dir = self.setup_engine()
+            
+            # Analyze CMake files and update project.yml
+            self.analyze_cmake()
             
             # Setup CMake modules
             self.setup_cmake_modules(engine_dir)
