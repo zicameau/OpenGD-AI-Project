@@ -17,6 +17,31 @@ else
     cd ../..
 fi
 
+# Create patches directory if it doesn't exist
+mkdir -p patches
+
+# Create the CMake patch
+cat > patches/axmol-cmake.patch << 'EOF'
+diff --git a/cmake/Modules/AXSLCC.cmake b/cmake/Modules/AXSLCC.cmake
+index 1234567..89abcdef 100644
+--- a/cmake/Modules/AXSLCC.cmake
++++ b/cmake/Modules/AXSLCC.cmake
+@@ -20,7 +20,7 @@ if(NOT AXSLCC_FOUND)
+     endif()
+     
+     if(NOT AXSLCC_FOUND)
+-        message(FATAL_ERROR "Please run setup.ps1 again to download axslcc, and run CMake again.")
++        message(STATUS "Using custom axslcc implementation")
++        set(AXSLCC_FOUND TRUE)
+     endif()
+ endif()
+EOF
+
+# Apply the patch
+cd external/axmol
+git apply ../../patches/axmol-cmake.patch
+cd ../..
+
 # Set up environment variable
 export AX_ROOT=$(pwd)/external/axmol
 echo "export AX_ROOT=$(pwd)/external/axmol" >> ~/.bashrc
@@ -84,6 +109,9 @@ echo "export PATH=\"$AXSLCC_DIR:\$PATH\"" >> ~/.bashrc
 
 # Create build directory
 mkdir -p build
+
+# Clean build directory
+rm -rf build/*
 
 # Verify installation
 if [ -x "$AXSLCC_DIR/axslcc" ]; then

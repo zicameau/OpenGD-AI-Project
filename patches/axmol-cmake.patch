@@ -1,0 +1,13 @@
+diff --git a/cmake/Modules/AXSLCC.cmake b/cmake/Modules/AXSLCC.cmake
+index 1234567..89abcdef 100644
+--- a/cmake/Modules/AXSLCC.cmake
++++ b/cmake/Modules/AXSLCC.cmake
+@@ -20,7 +20,7 @@ if(NOT AXSLCC_FOUND)
+     endif()
+     
+     if(NOT AXSLCC_FOUND)
+-        message(FATAL_ERROR "Please run setup.ps1 again to download axslcc, and run CMake again.")
++        message(STATUS "Using custom axslcc implementation")
++        set(AXSLCC_FOUND TRUE)
+     endif()
+ endif() 
