@@ -29,15 +29,33 @@ cat > "$FETCH_CMAKE" << 'EOF'
 # Custom fetch implementation for Linux
 include(CMakeParseArguments)
 
+# Define URLs for dependencies
+set(ZLIB_URL "https://github.com/madler/zlib/archive/refs/tags/v1.2.13.zip")
+set(ZLIB_SHA256 "1525952a0a567581792613a9723333d7f8cc20b87a81f920fb8bc7e3f2251428")
+
+set(OPENSSL_URL "https://github.com/openssl/openssl/archive/refs/tags/OpenSSL_1_1_1w.zip")
+set(OPENSSL_SHA256 "83049d042a260e696f62406ac5c08bf706fd84383f945cf21bd61e13a639abbc")
+
+set(CURL_URL "https://github.com/curl/curl/archive/refs/tags/curl-8_4_0.zip")
+set(CURL_SHA256 "e9c37986fe2d8af0e668c7b8c3cec9239bcca70c4c1403f179a8346a0aae2a89")
+
 function(_1kfetch_dist)
     cmake_parse_arguments(FETCH "" "URL;SHA256;FILENAME" "" ${ARGN})
     
-    if(NOT FETCH_URL)
-        message(FATAL_ERROR "URL is required for _1kfetch_dist")
+    # Map dependency names to URLs
+    if("${FETCH_FILENAME}" STREQUAL "zlib.zip")
+        set(FETCH_URL "${ZLIB_URL}")
+        set(FETCH_SHA256 "${ZLIB_SHA256}")
+    elseif("${FETCH_FILENAME}" STREQUAL "openssl.zip")
+        set(FETCH_URL "${OPENSSL_URL}")
+        set(FETCH_SHA256 "${OPENSSL_SHA256}")
+    elseif("${FETCH_FILENAME}" STREQUAL "curl.zip")
+        set(FETCH_URL "${CURL_URL}")
+        set(FETCH_SHA256 "${CURL_SHA256}")
     endif()
     
-    if(NOT FETCH_FILENAME)
-        string(REGEX REPLACE ".*/" "" FETCH_FILENAME "${FETCH_URL}")
+    if(NOT FETCH_URL)
+        message(FATAL_ERROR "Unknown dependency: ${FETCH_FILENAME}")
     endif()
     
     set(DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/downloads")
@@ -46,10 +64,11 @@ function(_1kfetch_dist)
     set(OUTPUT_FILE "${DOWNLOAD_DIR}/${FETCH_FILENAME}")
     
     if(NOT EXISTS "${OUTPUT_FILE}")
-        message(STATUS "Downloading ${FETCH_URL}")
+        message(STATUS "Downloading ${FETCH_URL} to ${OUTPUT_FILE}")
         file(DOWNLOAD "${FETCH_URL}" "${OUTPUT_FILE}"
             SHOW_PROGRESS
             STATUS DOWNLOAD_STATUS
+            TLS_VERIFY ON
         )
         
         list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
@@ -82,6 +101,8 @@ function(_1kfetch_extract)
     endif()
     
     file(MAKE_DIRECTORY "${FETCH_WORKING_DIRECTORY}")
+    
+    message(STATUS "Extracting ${FETCH_ARCHIVE} to ${FETCH_WORKING_DIRECTORY}")
     
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E tar xf "${FETCH_ARCHIVE}"
