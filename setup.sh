@@ -3,6 +3,45 @@
 # Exit on any error
 set -e
 
+echo "Setting up Python environment..."
+
+# Check if Python is installed
+if ! command -v python3 &> /dev/null; then
+    echo "Installing Python..."
+    sudo apt-get update
+    sudo apt-get install -y python3 python3-pip
+else
+    echo "Python is already installed"
+fi
+
+# Check if pip is installed
+if ! command -v pip3 &> /dev/null; then
+    echo "Installing pip..."
+    sudo apt-get install -y python3-pip
+else
+    echo "pip is already installed"
+fi
+
+# Install pyyaml if not already installed
+if ! python3 -c "import yaml" &> /dev/null; then
+    echo "Installing pyyaml..."
+    pip3 install pyyaml
+else
+    echo "pyyaml is already installed"
+fi
+
+# Make Python scripts executable
+chmod +x setup.py cleanup.py
+
+# Run the Python setup script
+echo "Running setup script..."
+./setup.py
+
+# Source the updated bashrc to apply any PATH changes
+source ~/.bashrc
+
+echo "Setup complete! You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
+
 # Create external directory
 mkdir -p external
 
@@ -60,7 +99,4 @@ rm -rf build/*
 
 echo "Setup complete!"
 echo "AX_ROOT has been set to: $AX_ROOT"
-echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
-
-# Source the updated bashrc
-source ~/.bashrc 
+echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .." 
