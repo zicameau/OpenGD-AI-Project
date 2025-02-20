@@ -63,15 +63,6 @@ else
     cd ../..
 fi
 
-# Analyze dependencies
-echo "Analyzing dependencies..."
-./analyze_deps.sh > dependencies.txt
-
-# Install system dependencies
-echo "Installing system dependencies..."
-sudo apt-get update
-sudo apt-get install -y $(cat dependencies.txt | grep -v '^#')
-
 # Create simple axslcc implementation
 AXSLCC_DIR="external/axmol/tools/axslcc"
 mkdir -p "$AXSLCC_DIR"
