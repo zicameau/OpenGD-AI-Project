@@ -22,11 +22,9 @@ mkdir -p patches
 
 # Create the CMake patch
 cat > patches/axmol-cmake.patch << 'EOF'
-diff --git a/cmake/Modules/AXSLCC.cmake b/cmake/Modules/AXSLCC.cmake
-index 1234567..89abcdef 100644
---- a/cmake/Modules/AXSLCC.cmake
-+++ b/cmake/Modules/AXSLCC.cmake
-@@ -20,7 +20,7 @@ if(NOT AXSLCC_FOUND)
+--- cmake/Modules/AXSLCC.cmake	2024-02-19 23:45:00.000000000 +0000
++++ cmake/Modules/AXSLCC.cmake	2024-02-19 23:45:00.000000000 +0000
+@@ -20,7 +20,7 @@
      endif()
      
      if(NOT AXSLCC_FOUND)
@@ -39,7 +37,7 @@ EOF
 
 # Apply the patch
 cd external/axmol
-git apply ../../patches/axmol-cmake.patch
+patch -p0 < ../../patches/axmol-cmake.patch || true
 cd ../..
 
 # Set up environment variable
@@ -65,7 +63,8 @@ sudo apt-get install -y \
     libglu1-mesa-dev \
     libxinerama-dev \
     libxcursor-dev \
-    libglfw3-dev
+    libglfw3-dev \
+    patch
 
 # Clone and build SPIRV-Cross
 if [ ! -d "external/SPIRV-Cross" ]; then
