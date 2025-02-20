@@ -6,7 +6,7 @@ set -e
 # Create external directory
 mkdir -p external
 
-# Clone Axmol Engine
+# Clone Axmol Engine if not already present
 if [ ! -d "external/axmol" ]; then
     echo "Cloning Axmol Engine..."
     git clone git@github.com:axmolengine/axmol.git external/axmol
@@ -17,50 +17,14 @@ else
     cd ../..
 fi
 
+# Analyze dependencies
+echo "Analyzing dependencies..."
+./analyze_deps.sh > dependencies.txt
+
 # Install system dependencies
 echo "Installing system dependencies..."
 sudo apt-get update
-sudo apt-get install -y \
-    build-essential \
-    cmake \
-    libglew-dev \
-    libx11-dev \
-    libxrandr-dev \
-    libxi-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev \
-    libxinerama-dev \
-    libxcursor-dev \
-    libglfw3-dev \
-    nasm \
-    libvlc-dev \
-    vlc \
-    zlib1g-dev \
-    libssl-dev \
-    libcurl4-openssl-dev \
-    liblua5.3-dev \
-    libasound2-dev \
-    libfmt-dev
-
-# Create a simplified CMake module to handle dependencies
-mkdir -p external/axmol/cmake/Modules
-cat > external/axmol/cmake/Modules/AXDependencies.cmake << 'EOF'
-# Use system libraries instead of downloading and building
-find_package(ZLIB REQUIRED)
-find_package(OpenSSL REQUIRED)
-find_package(CURL REQUIRED)
-find_package(fmt REQUIRED)
-find_package(Lua 5.3 REQUIRED)
-find_package(ALSA REQUIRED)
-EOF
-
-# Modify the AXSLCC.cmake file
-cat > external/axmol/cmake/Modules/AXSLCC.cmake << 'EOF'
-# Simplified shader compiler setup
-set(AXSLCC_FOUND TRUE)
-set(AXSLCC_OUT_DIR "${CMAKE_BINARY_DIR}/runtime/axslc")
-file(MAKE_DIRECTORY "${AXSLCC_OUT_DIR}")
-EOF
+sudo apt-get install -y $(cat dependencies.txt | grep -v '^#')
 
 # Create simple axslcc implementation
 AXSLCC_DIR="external/axmol/tools/axslcc"
