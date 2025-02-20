@@ -35,6 +35,10 @@ echo "Making scripts executable..."
 find . -type f -name "*.sh" -exec chmod +x {} \;
 find . -type f -name "*.py" -exec chmod +x {} \;
 
+# Run the CMake analyzer first
+echo "Analyzing CMake files..."
+./analyze_cmake.py
+
 # Run the Python setup script
 echo "Running setup script..."
 ./setup.py
