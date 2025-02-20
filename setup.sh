@@ -9,7 +9,7 @@ mkdir -p external
 # Clone Axmol Engine
 if [ ! -d "external/axmol" ]; then
     echo "Cloning Axmol Engine..."
-    git clone https://github.com/axmolengine/axmol.git external/axmol
+    git clone git@github.com:axmolengine/axmol.git external/axmol
 else
     echo "Axmol Engine already exists, updating..."
     cd external/axmol
@@ -45,7 +45,7 @@ sudo apt-get install -y \
 # Clone and build SPIRV-Cross
 if [ ! -d "external/SPIRV-Cross" ]; then
     echo "Cloning SPIRV-Cross..."
-    git clone https://github.com/KhronosGroup/SPIRV-Cross.git external/SPIRV-Cross
+    git clone git@github.com:KhronosGroup/SPIRV-Cross.git external/SPIRV-Cross
     cd external/SPIRV-Cross
     mkdir build && cd build
     cmake ..
