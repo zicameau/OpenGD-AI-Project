@@ -39,8 +39,23 @@ find_package(X11 REQUIRED)
 find_package(ALSA REQUIRED)
 find_package(PulseAudio REQUIRED)
 
-# Add AX Engine
-add_subdirectory(external/ax)
+# Check for Axmol Engine
+if(NOT DEFINED ENV{AX_ROOT})
+    # Try to find Axmol in common locations
+    if(EXISTS "${CMAKE_SOURCE_DIR}/external/axmol")
+        set(ENV{AX_ROOT} "${CMAKE_SOURCE_DIR}/external/axmol")
+    else()
+        message(FATAL_ERROR 
+            "Axmol Engine not found. Please either:\n"
+            "1. Set AX_ROOT environment variable to your Axmol installation\n"
+            "2. Clone Axmol into external/axmol directory\n"
+            "   git clone https://github.com/axmolengine/axmol.git external/axmol"
+        )
+    endif()
+endif()
+
+# Add Axmol Engine
+add_subdirectory("$ENV{AX_ROOT}" "${CMAKE_BINARY_DIR}/axmol")
 
 # Compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -54,8 +69,8 @@ file(GLOB_RECURSE SOURCES "Source/*.cpp")
 add_executable(OpenGD ${SOURCES})
 
 # Link libraries
-target_link_libraries(OpenGD PRIVATE
-    ax
+target_link_libraries(OpenGD PRIVATE 
+    axmol
     OpenGL::GL
     X11
     ALSA::ALSA
