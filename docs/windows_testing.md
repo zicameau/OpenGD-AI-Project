@@ -49,19 +49,21 @@ sudo apt-get install -y \
     libxcursor-dev     # Added for cursor handling
 ```
 
-2. Clone and build:
+2. Clone and setup:
 ```bash
 # Clone repository
 git clone https://github.com/OpenGD/OpenGD.git
 cd OpenGD
 
-# Create build directory
-mkdir build && cd build
+# Make setup script executable
+chmod +x setup.sh
 
-# Configure with CMake
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+# Run setup script (this will clone Axmol Engine and set environment variables)
+./setup.sh
 
 # Build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 make -j$(nproc)
 
 # Run tests
@@ -92,6 +94,8 @@ sudo apt-get install -y virtualbox-guest-x11
 sudo reboot  # Reboot to apply changes
 ```
 
+5. Follow the build steps from WSL2 section above
+
 ### Using VMware
 1. Download VMware Workstation Player:
    - https://www.vmware.com/products/workstation-player.html
@@ -100,6 +104,8 @@ sudo reboot  # Reboot to apply changes
    - Enable 3D Acceleration
    - Install VMware Tools
    - Allocate sufficient resources (similar to VirtualBox recommendations)
+
+3. Follow the build steps from WSL2 section above
 
 ## Option 3: Docker Desktop
 
@@ -120,6 +126,9 @@ sudo reboot  # Reboot to apply changes
 git clone https://github.com/OpenGD/OpenGD.git
 cd OpenGD
 
+# Run setup script
+./setup.sh
+
 # Build and run tests in container
 docker build -t opengd-tests .
 docker run --rm opengd-tests ./scripts/run_tests.sh
@@ -128,49 +137,39 @@ docker run --rm opengd-tests ./scripts/run_tests.sh
 ./scripts/test_all_distributions.sh
 ```
 
-## Comparison of Methods
+## Troubleshooting
 
-### WSL2
-Pros:
-- Native Linux performance
-- Easy setup on Windows 11
-- Direct file system access
-- Good graphics support (WSLg)
-- Low resource overhead
+### Common Issues
 
-Cons:
-- Some hardware limitations
-- Audio configuration can be complex
-- Windows 11 recommended for best experience
-- Limited GPU support on Windows 10
+1. **Axmol Engine Setup Failed**
+```bash
+# Manual setup if setup.sh fails
+mkdir -p external
+git clone https://github.com/axmolengine/axmol.git external/axmol
+export AX_ROOT=$(pwd)/external/axmol
+echo "export AX_ROOT=$(pwd)/external/axmol" >> ~/.bashrc
+source ~/.bashrc
+```
 
-### Virtual Machine
-Pros:
-- Full Linux environment
-- Complete hardware isolation
-- Better for debugging
-- Works on all Windows versions
-- Full GPU passthrough support
+2. **Build Errors**
+```bash
+# Clean build directory
+rm -rf build/*
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make clean
+make -j$(nproc)
+```
 
-Cons:
-- Higher resource usage
-- Slower performance
-- More complex setup
-- Requires more disk space
+3. **Graphics Issues**
+```bash
+# Check OpenGL support
+glxinfo | grep "OpenGL version"
 
-### Docker
-Pros:
-- Lightweight
-- Good for CI/CD testing
-- Consistent environment
-- Easy to automate
-- Version control friendly
-
-Cons:
-- Limited graphics support
-- No direct hardware access
-- Not ideal for development
-- Complex networking setup
+# Install additional graphics packages if needed
+sudo apt-get install -y \
+    mesa-utils \
+    libgl1-mesa-glx
+```
 
 ## Recommended Workflow
 
@@ -178,7 +177,8 @@ Cons:
 ```bash
 # In WSL2 Ubuntu
 cd OpenGD
-mkdir build && cd build
+./setup.sh  # Run once for initial setup
+cd build
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 make -j$(nproc)
 
