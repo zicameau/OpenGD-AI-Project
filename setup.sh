@@ -30,12 +30,19 @@ else
     echo "pyyaml is already installed"
 fi
 
-# Make Python scripts executable
-chmod +x setup.py cleanup.py
+# Make all Python and shell scripts executable
+echo "Making scripts executable..."
+find . -type f -name "*.sh" -exec chmod +x {} \;
+find . -type f -name "*.py" -exec chmod +x {} \;
 
 # Run the Python setup script
 echo "Running setup script..."
 ./setup.py
+
+# Make any shell scripts in the project executable (including those created during setup)
+echo "Making all shell scripts executable..."
+find . -type f -name "*.sh" -exec chmod +x {} \;
+find external -type f -name "axslcc" -exec chmod +x {} \; 2>/dev/null || true
 
 # Source the updated bashrc to apply any PATH changes
 source ~/.bashrc
