@@ -17,7 +17,7 @@ else
     cd ../..
 fi
 
-# Modify the AXSLCC.cmake file directly
+# Modify the AXSLCC.cmake file
 AXSLCC_CMAKE="external/axmol/cmake/Modules/AXSLCC.cmake"
 echo "Modifying $AXSLCC_CMAKE..."
 
@@ -26,6 +26,37 @@ cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
 
 # Replace the error message with our custom implementation
 sed -i 's/message(FATAL_ERROR "Please run setup.ps1 again to download axslcc, and run CMake again.")/message(STATUS "Using custom axslcc implementation")\n        set(AXSLCC_FOUND TRUE)/' "$AXSLCC_CMAKE"
+
+# Modify the AXBuildHelpers.cmake file
+BUILDHELPERS_CMAKE="external/axmol/cmake/Modules/AXBuildHelpers.cmake"
+echo "Modifying $BUILDHELPERS_CMAKE..."
+
+# Create a backup
+cp "$BUILDHELPERS_CMAKE" "${BUILDHELPERS_CMAKE}.bak"
+
+# Replace PowerShell check with a custom implementation
+cat > "$BUILDHELPERS_CMAKE" << 'EOF'
+# Custom build helpers for Linux
+include(CMakeParseArguments)
+
+function(ax_copy_target_dll TARGET_NAME)
+    # No-op on Linux
+endfunction()
+
+function(ax_copy_bin_dll_to_target TARGET_NAME)
+    # No-op on Linux
+endfunction()
+
+function(ax_copy_target_to_bin_dir TARGET_NAME)
+    # No-op on Linux
+endfunction()
+
+function(ax_copy_target_deps_dlls TARGET_NAME)
+    # No-op on Linux
+endfunction()
+
+# Add any other necessary functions here
+EOF
 
 # Set up environment variable
 export AX_ROOT=$(pwd)/external/axmol
