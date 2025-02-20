@@ -1,0 +1,81 @@
+# Project configuration
+name: OpenGD-AI
+engine:
+  name: axmol
+  repository: git@github.com:axmolengine/axmol.git
+  branch: main
+
+# System dependencies by platform
+dependencies:
+  ubuntu:
+    build:
+      - build-essential
+      - cmake
+      - nasm
+    graphics:
+      - libgl1-mesa-dev
+      - libglew-dev
+      - libglfw3-dev
+    x11:
+      - libx11-dev
+      - libxrandr-dev
+      - libxi-dev
+      - libxinerama-dev
+      - libxcursor-dev
+    audio:
+      - libasound2-dev
+    media:
+      - libvlc-dev
+      - vlc
+    libraries:
+      - zlib1g-dev
+      - libssl-dev
+      - libcurl4-openssl-dev
+      - liblua5.3-dev
+      - libfmt-dev
+
+# CMake overrides
+cmake:
+  modules:
+    - name: AXSLCC
+      path: cmake/Modules/AXSLCC.cmake
+      content: |
+        set(AXSLCC_FOUND TRUE)
+        set(AXSLCC_OUT_DIR "${CMAKE_BINARY_DIR}/runtime/axslc")
+        file(MAKE_DIRECTORY "${AXSLCC_OUT_DIR}")
+    
+    - name: AXBuildHelpers
+      path: cmake/Modules/AXBuildHelpers.cmake
+      content: |
+        include(CMakeParseArguments)
+        if(NOT WIN32)
+            return()
+        endif()
+        
+        function(ax_copy_target_dll TARGET_NAME)
+        endfunction()
+        
+        function(ax_copy_bin_dll_to_target TARGET_NAME)
+        endfunction()
+        
+        function(ax_copy_target_to_bin_dir TARGET_NAME)
+        endfunction()
+        
+        function(ax_copy_target_deps_dlls TARGET_NAME)
+        endfunction()
+
+# Tools configuration
+tools:
+  axslcc:
+    path: tools/axslcc
+    script: |
+      #!/bin/bash
+      input_file="$1"
+      output_file="$2"
+      
+      if [ -z "$input_file" ] || [ -z "$output_file" ]; then
+          echo "Usage: axslcc <input_file> <output_file>"
+          exit 1
+      fi
+      
+      cp "$input_file" "$output_file" 
