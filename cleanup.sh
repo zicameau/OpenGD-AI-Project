@@ -5,17 +5,6 @@ set -e
 
 echo "Starting cleanup..."
 
-# Restore CMake files if backups exist
-if [ -f "external/axmol/cmake/Modules/AXSLCC.cmake.bak" ]; then
-    echo "Restoring AXSLCC.cmake..."
-    mv "external/axmol/cmake/Modules/AXSLCC.cmake.bak" "external/axmol/cmake/Modules/AXSLCC.cmake"
-fi
-
-if [ -f "external/axmol/cmake/Modules/AXBuildHelpers.cmake.bak" ]; then
-    echo "Restoring AXBuildHelpers.cmake..."
-    mv "external/axmol/cmake/Modules/AXBuildHelpers.cmake.bak" "external/axmol/cmake/Modules/AXBuildHelpers.cmake"
-fi
-
 # Remove external directories
 if [ -d "external" ]; then
     echo "Removing external dependencies..."
