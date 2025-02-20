@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on any error
+set -e
+
 # Create external directory
 mkdir -p external
 
@@ -27,18 +30,38 @@ if [ ! -d "$AXSLCC_DIR" ]; then
     # Determine system architecture
     ARCH=$(uname -m)
     if [ "$ARCH" = "x86_64" ]; then
-        AXSLCC_URL="https://github.com/axmolengine/axmol/releases/download/v2.0.0/axslcc-linux-x64.tar.gz"
+        AXSLCC_URL="https://github.com/axmolengine/axmol-tools/releases/download/v1.0.0/axslcc-linux-x64.tar.gz"
     elif [ "$ARCH" = "aarch64" ]; then
-        AXSLCC_URL="https://github.com/axmolengine/axmol/releases/download/v2.0.0/axslcc-linux-arm64.tar.gz"
+        AXSLCC_URL="https://github.com/axmolengine/axmol-tools/releases/download/v1.0.0/axslcc-linux-arm64.tar.gz"
     else
         echo "Unsupported architecture: $ARCH"
         exit 1
     fi
     
     # Download and extract axslcc
-    wget "$AXSLCC_URL" -O axslcc.tar.gz
-    tar -xzf axslcc.tar.gz -C "$AXSLCC_DIR"
-    rm axslcc.tar.gz
+    if ! wget "$AXSLCC_URL" -O axslcc.tar.gz; then
+        echo "Failed to download axslcc from $AXSLCC_URL"
+        echo "Attempting to build from source..."
+        
+        # Build axslcc from source
+        git clone https://github.com/axmolengine/axmol-tools.git
+        cd axmol-tools/axslcc
+        mkdir build && cd build
+        cmake ..
+        make -j$(nproc)
+        
+        # Copy built binary to tools directory
+        cp axslcc "$AXSLCC_DIR/"
+        cd ../../..
+        rm -rf axmol-tools
+    else
+        # Extract downloaded archive
+        if ! tar -xzf axslcc.tar.gz -C "$AXSLCC_DIR"; then
+            echo "Failed to extract axslcc"
+            exit 1
+        fi
+        rm axslcc.tar.gz
+    fi
     
     # Make axslcc executable
     chmod +x "$AXSLCC_DIR/axslcc"
@@ -51,10 +74,16 @@ echo "export PATH=\"$AXSLCC_DIR:\$PATH\"" >> ~/.bashrc
 # Create build directory
 mkdir -p build
 
-echo "Setup complete!"
-echo "AX_ROOT has been set to: $AX_ROOT"
-echo "axslcc has been installed to: $AXSLCC_DIR"
-echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
+# Verify installation
+if [ -x "$AXSLCC_DIR/axslcc" ]; then
+    echo "Setup complete!"
+    echo "AX_ROOT has been set to: $AX_ROOT"
+    echo "axslcc has been installed to: $AXSLCC_DIR"
+    echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
+else
+    echo "Error: axslcc installation failed"
+    exit 1
+fi
 
 # Source the updated bashrc
 source ~/.bashrc 
