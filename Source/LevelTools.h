@@ -21,11 +21,38 @@
 #include <string>
 #include <string_view>
 
+/**
+ * @namespace LevelTools
+ * @brief Utilities for level management and verification
+ * 
+ * Provides functionality for:
+ * - Level data validation
+ * - Level string processing
+ * - Audio management
+ */
 namespace LevelTools {
+	/**
+	 * @brief Verifies the integrity of level data
+	 * @param levelData Raw level data to verify
+	 * @param id Level ID
+	 * @return bool True if level data is valid
+	 */
 	bool verifyLevelIntegrity(std::string_view levelData, int id);
 	
+	/**
+	 * @brief Gets the filename for level audio
+	 * @param lid Level ID
+	 * @return std::string Audio filename
+	 */
 	std::string getAudioFilename(int lid);
+
+	/**
+	 * @brief Gets the title of level audio
+	 * @param lid Level ID
+	 * @return std::string Audio title
+	 */
 	std::string getAudioTitle(int lid);
+
 	int getArtistForAudio(int lid);
 	std::string getNameForArtist(int artistId);
 	std::string getFbURLForArtist(int artistId);

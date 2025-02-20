@@ -25,6 +25,16 @@
 #include <vector>
 #include "GDHSV.h"
 
+/**
+ * @namespace GameToolbox
+ * @brief Collection of utility functions for game operations
+ * 
+ * Provides common functionality including:
+ * - Type conversions
+ * - String manipulation
+ * - Math utilities
+ * - Resource management
+ */
 namespace GameToolbox
 {
 ax::Color3B colorForIdx(int col);

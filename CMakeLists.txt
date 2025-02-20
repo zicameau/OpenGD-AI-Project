@@ -23,11 +23,50 @@
 # THE SOFTWARE.
 # ****************************************************************************/
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.15)
 
 set(APP_NAME OpenGD)
 
-project(${APP_NAME})
+project(OpenGD VERSION 1.0)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
+find_package(OpenGL REQUIRED)
+find_package(X11 REQUIRED)
+find_package(ALSA REQUIRED)
+find_package(PulseAudio REQUIRED)
+
+# Add AX Engine
+add_subdirectory(external/ax)
+
+# Compiler flags
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+endif()
+
+# Source files
+file(GLOB_RECURSE SOURCES "Source/*.cpp")
+
+# Create executable
+add_executable(OpenGD ${SOURCES})
+
+# Link libraries
+target_link_libraries(OpenGD PRIVATE
+    ax
+    OpenGL::GL
+    X11
+    ALSA::ALSA
+    PulseAudio::PulseAudio
+)
+
+# Include directories
+target_include_directories(OpenGD PRIVATE
+    ${CMAKE_SOURCE_DIR}/Source
+    ${CMAKE_SOURCE_DIR}/external/ax/include
+)
 
 if (NOT AX_PREBUILT_DIR)
 
@@ -204,7 +243,7 @@ else()
     add_library(${APP_NAME} SHARED ${APP_SOURCES})
     # whole archive for jni
     target_link_libraries(${APP_NAME} -Wl,--whole-archive cpp_android_spec -Wl,--no-whole-archive)
-    config_android_shared_libs("org.axmol.lib" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
+    config_android_shared_libs("dev.axmol.lib" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
 endif()
 
 if (NOT _AX_USE_PREBUILT)
@@ -225,7 +264,7 @@ ax_setup_app_config(${APP_NAME})
 if(APPLE)
     set_target_properties(${APP_NAME} PROPERTIES RESOURCE "${APP_UI_RES}")
     set_xcode_property(${APP_NAME} INSTALL_PATH "\$(LOCAL_APPS_DIR)")
-    set_xcode_property(${APP_NAME} PRODUCT_BUNDLE_IDENTIFIER "org.axmol.dummy")
+    set_xcode_property(${APP_NAME} PRODUCT_BUNDLE_IDENTIFIER "dev.axmol.dummy")
 
     if(MACOSX)
         set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/proj.ios_mac/mac/Info.plist")
@@ -270,3 +309,92 @@ if (_AX_USE_PREBUILT) # support windows and linux
 endif()
 
 ax_setup_app_props(${APP_NAME})
+
+# Add pkg-config support
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OPENGD_DEPS REQUIRED
+    alsa
+    x11
+    opengl
+    pulseaudio
+)
+
+# Add input-related dependencies
+find_package(X11 REQUIRED)
+pkg_check_modules(EVDEV REQUIRED libevdev)
+
+# Add audio-related dependencies
+find_package(PulseAudio REQUIRED)
+find_package(ALSA REQUIRED)
+
+# Update target link libraries
+target_link_libraries(OpenGD PRIVATE
+    ${OPENGD_DEPS_LIBRARIES}
+    ${X11_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${EVDEV_LIBRARIES}
+    ${PULSEAUDIO_LIBRARIES}
+    ${ALSA_LIBRARIES}
+    GL
+    GLX
+    ax
+)
+
+# Add include directories
+target_include_directories(OpenGD PRIVATE
+    ${X11_INCLUDE_DIR}
+    ${OPENGL_INCLUDE_DIR}
+    ${EVDEV_INCLUDE_DIRS}
+)
+
+# Install targets
+install(TARGETS OpenGD
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+)
+
+install(FILES opengd.pc
+    DESTINATION lib/pkgconfig
+)
+
+# Add testing support
+enable_testing()
+
+# Find GTest package
+find_package(GTest REQUIRED)
+
+# Create test executable
+add_executable(OpenGDTests
+    Source/tests/TestRunner.cpp
+    Source/tests/LinuxSystemTests.cpp
+)
+
+# Link test dependencies
+target_link_libraries(OpenGDTests PRIVATE
+    GTest::GTest
+    GTest::Main
+    ${OPENGD_DEPS_LIBRARIES}
+    ${X11_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${EVDEV_LIBRARIES}
+    ${PULSEAUDIO_LIBRARIES}
+    ${ALSA_LIBRARIES}
+    GL
+    GLX
+    ax
+)
+
+# Add test include directories
+target_include_directories(OpenGDTests PRIVATE
+    ${CMAKE_SOURCE_DIR}/Source
+    ${GTEST_INCLUDE_DIRS}
+)
+
+# Add tests to CTest
+add_test(NAME LinuxSystemTests COMMAND OpenGDTests)
+
+# Create test target
+add_custom_target(run_tests
+    COMMAND OpenGDTests
+    DEPENDS OpenGDTests
+)

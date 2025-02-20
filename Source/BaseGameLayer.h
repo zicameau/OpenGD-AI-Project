@@ -45,13 +45,25 @@ namespace ax
 //3. private functions
 //4. public functions
 
+/**
+ * @brief Settings that define level gameplay behavior
+ * 
+ * Contains all parameters that affect how a level plays including:
+ * - Game mode settings
+ * - Visual settings
+ * - Speed settings
+ */
 struct LevelSettings
 {
-	PlayerGamemode gamemode;
-	bool mini, dual, twoPlayer, flipGravity;
-	int speed;
-	float songOffset;
-	int _groundID = 1, _bgID = 1;
+	PlayerGamemode gamemode;  ///< Current gameplay mode
+	bool mini;               ///< Whether player is in mini mode
+	bool dual;              ///< Whether dual mode is active
+	bool twoPlayer;         ///< Whether two player mode is active
+	bool flipGravity;       ///< Whether gravity is flipped
+	int speed;              ///< Current speed multiplier
+	float songOffset;       ///< Music timing offset
+	int _groundID = 1;      ///< Ground texture ID
+	int _bgID = 1;         ///< Background texture ID
 };
 
 struct GroupProperties
@@ -63,6 +75,17 @@ struct GroupProperties
 	GroupState groupState = NOT_CHANGING;
 };
 
+/**
+ * @brief Base class for game layers that handle level rendering and gameplay
+ * 
+ * BaseGameLayer manages the core functionality for level playback including:
+ * - Batch node management for efficient rendering
+ * - Level loading and object creation
+ * - Player object management
+ * - Section-based object management for performance
+ * 
+ * @note This class uses a singleton pattern which should be refactored for better design
+ */
 class BaseGameLayer : public ax::Layer {
 protected:
 
@@ -99,29 +122,46 @@ protected:
 
 public:
 
-	GJGameLevel* _level;
-	std::vector<GameObject*> _allObjects;
+    std::vector<GameObject*> _allObjects;
 	std::vector<std::vector<GameObject*>> _sectionObjects;
 	std::unordered_map<int, SpriteColor, my_string_hash> _colorChannels, _originalColors;
 	std::unordered_map<int, GroupProperties, my_string_hash> _groups;
 
-	PlayerObject* _player1, _player2;
+	PlayerObject* _player1, *_player2;
 
 protected:
-	void loadLevel();
-	void initBatchNodes();
-	void createObjectsFromSetup(std::string_view uncompressedLevelString);
-	void setupLevel(std::string_view uncompressedLevelString);
-	void addObject(GameObject* obj);
-	void loadLevelData(std::string_view data);
-	void fillColorChannel(std::span<std::string_view> colorString, int id);
-	void processMoveActionsStep(float dt);
-	void processMoveActions(float dt);
-	ax::Color3B getLightBG(ax::Color3B bg, ax::Color3B p1);
+    virtual void loadLevel();
+    virtual void initBatchNodes();
+    virtual void createObjectsFromSetup(std::string_view uncompressedLevelString);
+	virtual void setupLevel(std::string_view uncompressedLevelString);
+    virtual void addObject(GameObject* obj);
+    virtual void loadLevelData(std::string_view data);
+	virtual void fillColorChannel(std::span<std::string_view> colorString, int id);
 public:
-	static BaseGameLayer* create(GJGameLevel*);
-	bool init(GJGameLevel*);
+    AX_SYNTHESIZE(GJGameLevel*, _level, Level);
+
+    /**
+     * @brief Creates a new game layer instance
+     * @param level Pointer to the level data to load
+     * @return BaseGameLayer* Pointer to the created layer, or nullptr if creation failed
+     * @throws std::bad_alloc If memory allocation fails
+     */
+    static BaseGameLayer* create(GJGameLevel* level);
+
+    /**
+     * @brief Initializes the game layer with level data
+     * @param level Pointer to the level to initialize
+     * @return bool True if initialization succeeded
+     */
+    virtual bool init(GJGameLevel* level);
+
 	static int sectionForPos(float x);
 	static BaseGameLayer* getInstance() {return _instance;}
+	virtual bool isObjectBlending(GameObject* obj);
+
+	void processMoveActions(float dt);
 	void runMoveCommand(float duration, ax::Point offsetPos, int easeType, float easeAmt, int groupID);
+	void processMoveActionsStep(float dt);
+
+	ax::Color3B getLightBG(ax::Color3B bg, ax::Color3B p1);
 };

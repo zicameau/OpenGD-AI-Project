@@ -16,18 +16,30 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 *************************************************************************/
 
+/*************************************************************************
+ * OpenGD - Open source Geometry Dash.
+ * Copyright (C) 2023  OpenGD Team
+ * 
+ * @file PlayLayer.h
+ * @brief Main gameplay layer handling level playback and player interaction
+ * 
+ * This layer manages:
+ * - Level playback and progression
+ * - Player input handling
+ * - Collision detection
+ * - Camera movement
+ * - Game state management
+ * 
+ * @note Inherits from BaseGameLayer
+ *************************************************************************/
+
 #pragma once
-#include <span>
 #include <string_view>
 #include <vector>
 
-#include "2d/Layer.h"
 #include "EventKeyboard.h"
 #include "BaseGameLayer.h"
-#include "SpriteColor.h"
-#include "PlatformMacros.h"
-#include "Types.h"
-#include "GameToolbox/conv.h"
+
 
 enum PlayerGamemode;
 
@@ -47,18 +59,23 @@ namespace ax
 }
 
 
-class PlayLayer : public ax::Layer
+class PlayLayer : public BaseGameLayer
 {
-  private:
-	bool init(GJGameLevel* level);
+protected:
+	/**
+	 * @brief Initializes the play layer with level data
+	 * @param level Pointer to the level to play
+	 * @return bool True if initialization succeeded
+	 */
+	bool init(GJGameLevel* level) override;
 	void onEnter() override;
 	void onExit() override;
 	void onDrawImGui();
-	void onKeyPressed(ax::EventKeyboard::KeyCode keyCode, ax::Event* event);
-	void onKeyReleased(ax::EventKeyboard::KeyCode keyCode, ax::Event* event);
+	virtual void onKeyPressed(ax::EventKeyboard::KeyCode keyCode, ax::Event* event);
+	virtual void onKeyReleased(ax::EventKeyboard::KeyCode keyCode, ax::Event* event);
 	void createLevelEnd();
 
-	void fillColorChannel(std::span<std::string_view> colorString, int id);
+	ax::Node* cameraFollow;
 
 	ax::Sprite* m_pBG;
 	GroundLayer *_bottomGround, *_ceiling;
@@ -71,10 +88,13 @@ class PlayLayer : public ax::Layer
 
 	std::vector<GameObject*> _pObjects;
 
-	std::vector<std::vector<GameObject*>> m_pSectionObjects;
-
+	/** @brief Current camera Y center position */
 	float m_fCameraYCenter;
+	
+	/** @brief Position of last placed object */
 	float m_lastObjXPos = 570.0f;
+	
+	/** @brief Indicates if this is the first attempt at the level */
 	bool m_bFirstAttempt = true;
 	bool m_bMoveCameraX;
 	bool m_bMoveCameraY;
@@ -82,14 +102,10 @@ class PlayLayer : public ax::Layer
 	float m_fEndOfLevel = FLT_MAX;
 	float m_fShakeIntensity = 1;
 
-	int _prevSection, _nextSection;
-
 	bool m_bIsJumpPressed;
 
 	SimpleProgressBar* m_pBar;
 	ax::Label* m_pPercentage;
-
-	LevelSettings _levelSettings;
 
 	//----IMGUI DEBUG MEMBERS----
 	bool m_freezePlayer;
@@ -97,6 +113,7 @@ class PlayLayer : public ax::Layer
 
 	bool m_bEndAnimation;
 
+	void setInstance();
 public:
 	int _enterEffectID = 0;
 
@@ -109,57 +126,45 @@ public:
 	int _attempts;
 	int _jumps;
 	bool _everyplay_recorded;
+	bool _testMode;
 
 	std::vector<bool> _coinsCollected;
 
-	PlayerObject* _player1;
-	PlayerObject* _player2;
-
 	bool _isDualMode;
 
-	std::string _mainBatchNodeTexture = "GJ_GameSheet.png";
-	std::string _main2BatchNodeTexture = "GJ_GameSheet02.png";
-
-	ax::SpriteBatchNode *_mainBatchNodeB4, *_mainBatchNodeB3, *_mainBatchNodeB2, *_mainBatchNodeB1, *_mainBatchNodeT1,
-		*_mainBatchNodeT2, *_mainBatchNodeT3;
-	ax::SpriteBatchNode *_blendingBatchNodeB4, *_blendingBatchNodeB3, *_blendingBatchNodeB2, *_blendingBatchNodeB1,
-		*_blendingBatchNodeT1, *_blendingBatchNodeT2, *_blendingBatchNodeT3;
-	ax::SpriteBatchNode* _main2BatchNode;
-	ax::SpriteBatchNode* _glowBatchNode;
-	ax::ParticleBatchNode* _particleBatchNode;
-
-	std::unordered_map<int, SpriteColor, my_string_hash> m_pColorChannels, _originalColors;
-	std::unordered_map<int, GroupProperties, my_string_hash> _groups;
-
-	AX_SYNTHESIZE(GJGameLevel*, _pLevel, Level);
-
-	void destroyPlayer(PlayerObject* player);
+	virtual void destroyPlayer(PlayerObject* player);
 
 	void loadLevel(std::string_view levelStr);
 
 	void spawnCircle();
 	void showEndLayer();
-	void showCompleteText();
+	virtual void showCompleteText();
 
 	void update(float delta) override;
-	void updateCamera(float dt);
+	/**
+	 * @brief Updates camera position based on player movement
+	 * @param dt Delta time since last update
+	 */
+	virtual void updateCamera(float dt);
 	void updateVisibility();
 	void moveCameraToPos(ax::Vec2);
 	void changeGameMode(GameObject* obj, PlayerObject* player, PlayerGamemode gameMode);
-	void resetLevel();
+	virtual void resetLevel();
 	void exit();
 
 	void tweenBottomGround(float y);
 	void tweenCeiling(float y);
 
-	// dt?
+	/**
+	 * @brief Handles collision detection between player and objects
+	 * @param player Player object to check collisions for
+	 * @param delta Time since last check
+	 */
 	void checkCollisions(PlayerObject* player, float delta);
 	void renderRect(ax::Rect rect, ax::Color4B col);
 
 	void applyEnterEffect(GameObject* obj);
 	float getRelativeMod(ax::Vec2 objPos, float v1, float v2, float v3);
-	
-	bool isObjectBlending(GameObject* obj);
 
 	int sectionForPos(float x);
 

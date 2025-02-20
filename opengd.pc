@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: OpenGD
+Description: Open source Geometry Dash
+Version: 1.0.0
+Requires: opengl x11 alsa
+Libs: -L${libdir} -lopengd
+Cflags: -I${includedir}/opengd 

@@ -24,19 +24,42 @@
 #include <deque>
 #include "GameToolbox/conv.h"
 
+/**
+ * @brief Manages visual effects and triggers in the game
+ * 
+ * Handles:
+ * - Effect triggering and processing
+ * - Move actions
+ * - Color effects
+ * - Particle effects
+ */
 class EffectManager : public ax::Node
 {
 	public:
-		std::vector<GroupCommandObject*> _groupActions;
-		std::vector<GroupCommandObject*> _completedMoveActions;
-		std::deque<GroupCommandObject*> _tempCompletedActions;
+		/**
+		 * @brief Creates a new effect manager instance
+		 * @return EffectManager* Pointer to created manager
+		 */
+		static EffectManager* create();
+
+		/**
+		 * @brief Prepares move actions for the next frame
+		 * @param dt Delta time
+		 * @param idk Unknown parameter
+		 */
+		void prepareMoveActions(float dt, bool idk);
+
+		std::vector<GroupCommandObject*> _groupActions = {};
+		std::vector<GroupCommandObject*> _completedMoveActions = {};
+		std::deque<GroupCommandObject*> _tempCompletedActions = {};
+		/** @brief Map of active move actions */
 		std::unordered_map<int, CCMoveNode*, my_string_hash> _activeMoveActions;
 
 		float _xAccel, _yAccel;
 
 		void runMoveCommand(float duration, ax::Point offsetPos, int easeType, float easeAmt, int groupID);
 
-		void prepareMoveActions(float dt, bool idk);
-
-		static EffectManager* create();
+	protected:
+		/** @brief List of group actions */
+		std::vector<CommandObject*> _groupActions;
 };

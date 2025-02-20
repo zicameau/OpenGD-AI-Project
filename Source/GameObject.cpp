@@ -38,10 +38,16 @@ bool GameObject::init(std::string_view frame, std::string_view glowFrame)
 		return true;
 
 	if (frame.empty())
+	{
+		// GameToolbox::log("false cuz frame is empty");
 		return false;
+	}
 
 	if (!Sprite::initWithSpriteFrameName(fmt::format("{}.png", frame)))
+	{
+		// GameToolbox::log("false cuz sprite failed");
 		return false;
+	}
 
 	_pOuterBounds = Rect();
 	_pInnerBounds = Rect();
@@ -260,16 +266,19 @@ GameObject* GameObject::createObject(std::string_view frame, std::string_view gl
 		return nullptr;
 }
 
-GameObject* GameObject::create(std::string_view frame, std::string_view glowFrame)
-{
-	auto pRet = new (std::nothrow) GameObject();
-
-	if (pRet && pRet->init(frame, glowFrame))
-	{
-		pRet->autorelease();
-		return pRet;
+/**
+ * @brief Creates a new game object with specified parameters
+ * @param objectID ID of the object type to create
+ * @param pos Initial position of the object
+ * @return GameObject* Pointer to created object or nullptr if creation failed
+ */
+GameObject* GameObject::create(int objectID, ax::Vec2 pos) {
+	auto obj = new GameObject();
+	if (obj && obj->init(objectID, pos)) {
+		obj->autorelease();
+		return obj;
 	}
-	AX_SAFE_DELETE(pRet);
+	AX_SAFE_DELETE(obj);
 	return nullptr;
 }
 
@@ -339,7 +348,8 @@ Color3B GameObject::getChannelColor(SpriteColor *colorChannel)
 
 void GameObject::applyColorChannel(ax::Sprite* sprite, int channelType, float opacityMultiplier, SpriteColor* col)
 {
-
+	if (!sprite || !col) return;
+	
 	float op = col->_opacity * opacityMultiplier * _effectOpacityMultipler;
 
 	switch (channelType)
@@ -381,7 +391,7 @@ void GameObject::update()
 		setScaleY(_startScale.y);
 	}
 
-	auto bgl = BaseGameLayer::getInstance();
+	auto bgl = PlayLayer::getInstance();
 	if (!bgl)
 		return;
 
@@ -707,7 +717,7 @@ GameObject* GameObject::createFromString(std::string_view data)
 			{
 				int group = GameToolbox::stoi(groupStr);
 				// TODO add groups in derived class
-				BaseGameLayer::getInstance()->_groups[group]._objects.push_back(obj);
+				PlayLayer::getInstance()->_groups[group]._objects.push_back(obj);
 				obj->_groups.push_back(group);
 			}
 			break;
@@ -777,34 +787,31 @@ GameObject* GameObject::createFromString(std::string_view data)
 	return nullptr;
 }
 
-void GameObject::removeFromGameLayer()
-{
-	setActive(false);
+/**
+ * @brief Removes object from game layer and cleans up resources
+ * @note Handles proper cleanup of particles and child sprites
+ */
+void GameObject::removeFromGameLayer() {
+    setActive(false);
 
-	for (auto sprite : _childSprites)
-	{
-		if (sprite->getBlendFunc() != getBlendFunc())
-		{
-			AX_SAFE_RETAIN(sprite);
-			sprite->removeFromParentAndCleanup(true);
-			/*addChild(sprite);
-			AX_SAFE_RELEASE(sprite);*/
-		}
-	}
+    for (auto sprite : _childSprites) {
+        if (sprite->getBlendFunc() != getBlendFunc()) {
+            AX_SAFE_RETAIN(sprite);
+            sprite->removeFromParentAndCleanup(true);
+        }
+    }
 
-	AX_SAFE_RETAIN(this);
-	if (_particle)
-	{
-		AX_SAFE_RETAIN(_particle);
-		_particle->removeFromParentAndCleanup(true);
-	}
-	if (_glowSprite)
-	{
-		AX_SAFE_RETAIN(_glowSprite);
-		_glowSprite->removeFromParentAndCleanup(true);
-	}
+    AX_SAFE_RETAIN(this);
+    if (_particle) {
+        AX_SAFE_RETAIN(_particle);
+        _particle->removeFromParentAndCleanup(true);
+    }
+    if (_glowSprite) {
+        AX_SAFE_RETAIN(_glowSprite);
+        _glowSprite->removeFromParentAndCleanup(true);
+    }
 
-	removeFromParentAndCleanup(true);
+    removeFromParentAndCleanup(true);
 }
 
 void GameObject::updateTweenAction(float value, std::string_view key)
@@ -852,13 +859,13 @@ std::map<std::string, std::string> GameObject::stringSetupToDict(std::string str
 }
 void GameObject::triggerActivated(PlayerObject* player)
 {
-	auto bgl = BaseGameLayer::getInstance();
+    auto bgl = PlayLayer::getInstance();
 	player == bgl->_player1 ? _hasBeenActivatedP1 = true : _hasBeenActivatedP2 = true;
 }
 
-bool GameObject::hasBeenActiavedByPlayer(PlayerObject* player)
+bool GameObject::hasBeenActivatedByPlayer(PlayerObject* player)
 {
-	auto bgl = BaseGameLayer::getInstance();
+	auto bgl = PlayLayer::getInstance();
 	return player == bgl->_player1 ? _hasBeenActivatedP1 : _hasBeenActivatedP2;
 }
 
@@ -876,22 +883,22 @@ ax::Rect GameObject::getOuterBounds(float a, float b)
 
 std::string_view GameObject::getGlowFrame(int objectID)
 {
-	return "";
+	 // return "";
 
-	// switch(objectID)
-	// {
-	// [[likely]] default: return "";
-	// case 44: return "checkpoint_01_glow_001";
-	// [[likely]] case 1: return "square_01_glow_001";
-	// [[likely]] case 2: return "square_02_glow_001";
-	// [[likely]] case 3: return "square_03_glow_001";
-	// [[likely]] case 4: return "square_04_glow_001";
-	// [[likely]] case 6: return "square_06_glow_001";
-	// [[likely]] case 7: return "square_07_glow_001";
-	// [[likely]] case 8: return "spike_01_glow_001";
-	// case 35: return "bump_01_glow_001";
-	// case 39: return "spike_02_glow_001";
-	// case 40: return "plank_01_glow_001";
-	// [[unlikely]] case 1903: return "plank_01_glow_001";
-	// }
+	 switch(objectID)
+	 {
+	 [[likely]] default: return "";
+	 case 44: return "checkpoint_01_glow_001";
+	 [[likely]] case 1: return "square_01_glow_001";
+	 [[likely]] case 2: return "square_02_glow_001";
+	 [[likely]] case 3: return "square_03_glow_001";
+	 [[likely]] case 4: return "square_04_glow_001";
+	 [[likely]] case 6: return "square_06_glow_001";
+	 [[likely]] case 7: return "square_07_glow_001";
+	 [[likely]] case 8: return "spike_01_glow_001";
+	 case 35: return "bump_01_glow_001";
+	 case 39: return "spike_02_glow_001";
+	 case 40: return "plank_01_glow_001";
+	 [[unlikely]] case 1903: return "plank_01_glow_001";
+	 }
 }
