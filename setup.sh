@@ -17,6 +17,84 @@ else
     cd ../..
 fi
 
+# Modify the fetch.cmake file
+FETCH_CMAKE="external/axmol/1k/fetch.cmake"
+echo "Modifying $FETCH_CMAKE..."
+
+# Create a backup
+cp "$FETCH_CMAKE" "${FETCH_CMAKE}.bak"
+
+# Create new fetch.cmake with wget implementation
+cat > "$FETCH_CMAKE" << 'EOF'
+# Custom fetch implementation for Linux
+include(CMakeParseArguments)
+
+function(_1kfetch_dist)
+    cmake_parse_arguments(FETCH "" "URL;SHA256;FILENAME" "" ${ARGN})
+    
+    if(NOT FETCH_URL)
+        message(FATAL_ERROR "URL is required for _1kfetch_dist")
+    endif()
+    
+    if(NOT FETCH_FILENAME)
+        string(REGEX REPLACE ".*/" "" FETCH_FILENAME "${FETCH_URL}")
+    endif()
+    
+    set(DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/downloads")
+    file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
+    
+    set(OUTPUT_FILE "${DOWNLOAD_DIR}/${FETCH_FILENAME}")
+    
+    if(NOT EXISTS "${OUTPUT_FILE}")
+        message(STATUS "Downloading ${FETCH_URL}")
+        file(DOWNLOAD "${FETCH_URL}" "${OUTPUT_FILE}"
+            SHOW_PROGRESS
+            STATUS DOWNLOAD_STATUS
+        )
+        
+        list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+        list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
+        
+        if(NOT STATUS_CODE EQUAL 0)
+            message(FATAL_ERROR "Failed to download ${FETCH_URL}: ${ERROR_MESSAGE}")
+        endif()
+        
+        if(FETCH_SHA256)
+            file(SHA256 "${OUTPUT_FILE}" DOWNLOADED_SHA256)
+            if(NOT "${DOWNLOADED_SHA256}" STREQUAL "${FETCH_SHA256}")
+                message(FATAL_ERROR "SHA256 mismatch for ${FETCH_FILENAME}")
+            endif()
+        endif()
+    endif()
+    
+    set(FETCH_OUTPUT_FILE "${OUTPUT_FILE}" PARENT_SCOPE)
+endfunction()
+
+function(_1kfetch_extract)
+    cmake_parse_arguments(FETCH "" "ARCHIVE;WORKING_DIRECTORY" "" ${ARGN})
+    
+    if(NOT FETCH_ARCHIVE)
+        message(FATAL_ERROR "ARCHIVE is required for _1kfetch_extract")
+    endif()
+    
+    if(NOT FETCH_WORKING_DIRECTORY)
+        set(FETCH_WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
+    
+    file(MAKE_DIRECTORY "${FETCH_WORKING_DIRECTORY}")
+    
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E tar xf "${FETCH_ARCHIVE}"
+        WORKING_DIRECTORY "${FETCH_WORKING_DIRECTORY}"
+        RESULT_VARIABLE EXTRACT_RESULT
+    )
+    
+    if(NOT EXTRACT_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to extract ${FETCH_ARCHIVE}")
+    endif()
+endfunction()
+EOF
+
 # Modify the AXSLCC.cmake file
 AXSLCC_CMAKE="external/axmol/cmake/Modules/AXSLCC.cmake"
 echo "Modifying $AXSLCC_CMAKE..."
@@ -69,8 +147,6 @@ function(ax_config_pred)
         set(${AX_PRED_RESULT} 0 PARENT_SCOPE)
     endif()
 endfunction()
-
-# Add any other necessary functions here
 EOF
 
 # Set up environment variable
@@ -94,7 +170,9 @@ sudo apt-get install -y \
     libglfw3-dev \
     nasm \
     libvlc-dev \
-    vlc
+    vlc \
+    wget \
+    curl
 
 # Download and setup axslcc
 AXSLCC_DIR="$AX_ROOT/tools/axslcc"
