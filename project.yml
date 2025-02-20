@@ -3,7 +3,7 @@ name: OpenGD-AI
 engine:
   name: axmol
   repository: git@github.com:axmolengine/axmol.git
-  branch: main
+  branch: dev
 
 # System dependencies by platform
 dependencies:
