@@ -55,6 +55,21 @@ function(ax_copy_target_deps_dlls TARGET_NAME)
     # No-op on Linux
 endfunction()
 
+function(ax_config_pred)
+    # Custom implementation for Linux
+    set(options)
+    set(oneValueArgs RESULT EXPR)
+    set(multiValueArgs)
+    
+    cmake_parse_arguments(AX_PRED "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    
+    if(${AX_PRED_EXPR})
+        set(${AX_PRED_RESULT} 1 PARENT_SCOPE)
+    else()
+        set(${AX_PRED_RESULT} 0 PARENT_SCOPE)
+    endif()
+endfunction()
+
 # Add any other necessary functions here
 EOF
 
@@ -62,13 +77,8 @@ EOF
 export AX_ROOT=$(pwd)/external/axmol
 echo "export AX_ROOT=$(pwd)/external/axmol" >> ~/.bashrc
 
-# Download and setup axslcc
-AXSLCC_DIR="$AX_ROOT/tools/axslcc"
-mkdir -p "$AXSLCC_DIR"
-
-echo "Building axslcc from source..."
-
 # Install required dependencies
+echo "Installing dependencies..."
 sudo apt-get update
 sudo apt-get install -y \
     build-essential \
@@ -81,7 +91,16 @@ sudo apt-get install -y \
     libglu1-mesa-dev \
     libxinerama-dev \
     libxcursor-dev \
-    libglfw3-dev
+    libglfw3-dev \
+    nasm \
+    libvlc-dev \
+    vlc
+
+# Download and setup axslcc
+AXSLCC_DIR="$AX_ROOT/tools/axslcc"
+mkdir -p "$AXSLCC_DIR"
+
+echo "Building axslcc from source..."
 
 # Clone and build SPIRV-Cross
 if [ ! -d "external/SPIRV-Cross" ]; then
