@@ -80,6 +80,26 @@ cmake:
                 SOURCES ${ARG_SOURCES}
             )
         endfunction()
+        
+        function(ax_target_compile_shaders target_name)
+            cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES")
+            if(NOT ARG_SOURCES)
+                ax_find_shaders(shader_files)
+            else()
+                set(shader_files ${ARG_SOURCES})
+            endif()
+            
+            if(shader_files)
+                set(shader_target "${target_name}_shaders")
+                ax_add_shader_target(${shader_target} SOURCES ${shader_files})
+                add_dependencies(${target_name} ${shader_target})
+                
+                # Set shader output directory as a property
+                set_target_properties(${target_name} PROPERTIES
+                    AXSLCC_OUTPUT_DIR "${AXSLCC_OUT_DIR}"
+                )
+            endif()
+        endfunction()
     
     - name: AXBuildHelpers
       path: cmake/Modules/AXBuildHelpers.cmake
