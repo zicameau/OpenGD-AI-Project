@@ -17,28 +17,15 @@ else
     cd ../..
 fi
 
-# Create patches directory if it doesn't exist
-mkdir -p patches
+# Modify the AXSLCC.cmake file directly
+AXSLCC_CMAKE="external/axmol/cmake/Modules/AXSLCC.cmake"
+echo "Modifying $AXSLCC_CMAKE..."
 
-# Create the CMake patch
-cat > patches/axmol-cmake.patch << 'EOF'
---- cmake/Modules/AXSLCC.cmake	2024-02-19 23:45:00.000000000 +0000
-+++ cmake/Modules/AXSLCC.cmake	2024-02-19 23:45:00.000000000 +0000
-@@ -20,7 +20,7 @@
-     endif()
-     
-     if(NOT AXSLCC_FOUND)
--        message(FATAL_ERROR "Please run setup.ps1 again to download axslcc, and run CMake again.")
-+        message(STATUS "Using custom axslcc implementation")
-+        set(AXSLCC_FOUND TRUE)
-     endif()
- endif()
-EOF
+# Create a backup
+cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
 
-# Apply the patch
-cd external/axmol
-patch -p0 < ../../patches/axmol-cmake.patch || true
-cd ../..
+# Replace the error message with our custom implementation
+sed -i 's/message(FATAL_ERROR "Please run setup.ps1 again to download axslcc, and run CMake again.")/message(STATUS "Using custom axslcc implementation")\n        set(AXSLCC_FOUND TRUE)/' "$AXSLCC_CMAKE"
 
 # Set up environment variable
 export AX_ROOT=$(pwd)/external/axmol
@@ -63,8 +50,7 @@ sudo apt-get install -y \
     libglu1-mesa-dev \
     libxinerama-dev \
     libxcursor-dev \
-    libglfw3-dev \
-    patch
+    libglfw3-dev
 
 # Clone and build SPIRV-Cross
 if [ ! -d "external/SPIRV-Cross" ]; then
