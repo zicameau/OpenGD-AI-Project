@@ -31,9 +31,9 @@ class ProjectSetup:
                 pass
         return system
     
-    def run_command(self, cmd, check=True):
+    def run_command(self, cmd, check=True, cwd=None):
         print(f"Running: {' '.join(cmd)}")
-        subprocess.run(cmd, check=check)
+        subprocess.run(cmd, check=check, cwd=cwd)
     
     def install_dependencies(self):
         if self.platform not in self.config['dependencies']:
@@ -74,15 +74,17 @@ class ProjectSetup:
             module_path = engine_dir / module['path']
             module_path.parent.mkdir(parents=True, exist_ok=True)
             
+            print(f"Creating CMake module: {module_path}")
             with open(module_path, 'w') as f:
                 f.write(module['content'])
     
     def setup_tools(self, engine_dir):
         for tool_name, tool_config in self.config['tools'].items():
             tool_path = engine_dir / tool_config['path']
-            tool_path.parent.mkdir(parents=True, exist_ok=True)
+            tool_path.mkdir(parents=True, exist_ok=True)
             
             script_path = tool_path / tool_name
+            print(f"Creating tool script: {script_path}")
             with open(script_path, 'w') as f:
                 f.write(tool_config['script'])
             
@@ -102,14 +104,10 @@ class ProjectSetup:
     
     def setup_build_dir(self):
         build_dir = self.project_root / 'build'
-        build_dir.mkdir(exist_ok=True)
-        
-        # Clean build directory
-        for item in build_dir.iterdir():
-            if item.is_dir():
-                shutil.rmtree(item)
-            else:
-                item.unlink()
+        if build_dir.exists():
+            print(f"Cleaning build directory: {build_dir}")
+            shutil.rmtree(build_dir)
+        build_dir.mkdir()
     
     def setup(self):
         try:
