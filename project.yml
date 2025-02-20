@@ -43,6 +43,43 @@ cmake:
         set(AXSLCC_FOUND TRUE)
         set(AXSLCC_OUT_DIR "${CMAKE_BINARY_DIR}/runtime/axslc")
         file(MAKE_DIRECTORY "${AXSLCC_OUT_DIR}")
+        
+        function(ax_find_shaders out_var)
+            set(shader_files)
+            file(GLOB_RECURSE shader_files
+                ${CMAKE_CURRENT_SOURCE_DIR}/*.vert
+                ${CMAKE_CURRENT_SOURCE_DIR}/*.frag
+                ${CMAKE_CURRENT_SOURCE_DIR}/*.vsh
+                ${CMAKE_CURRENT_SOURCE_DIR}/*.fsh
+                ${CMAKE_CURRENT_SOURCE_DIR}/*.vs
+                ${CMAKE_CURRENT_SOURCE_DIR}/*.fs
+            )
+            set(${out_var} ${shader_files} PARENT_SCOPE)
+        endfunction()
+        
+        function(ax_add_shader_target target_name)
+            cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "SOURCES")
+            if(NOT ARG_SOURCES)
+                return()
+            endif()
+            
+            foreach(shader ${ARG_SOURCES})
+                get_filename_component(shader_name ${shader} NAME)
+                set(output "${AXSLCC_OUT_DIR}/${shader_name}")
+                add_custom_command(
+                    OUTPUT ${output}
+                    COMMAND axslcc ${shader} ${output}
+                    DEPENDS ${shader}
+                    COMMENT "Compiling shader ${shader_name}"
+                )
+                list(APPEND shader_outputs ${output})
+            endforeach()
+            
+            add_custom_target(${target_name} ALL
+                DEPENDS ${shader_outputs}
+                SOURCES ${ARG_SOURCES}
+            )
+        endfunction()
     
     - name: AXBuildHelpers
       path: cmake/Modules/AXBuildHelpers.cmake
