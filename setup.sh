@@ -270,8 +270,8 @@ echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
 echo "===> Setting up cp wrapper for shader compilation"
 # Create wrapper script in the build directory
-mkdir -p build
-cat > build/cp << 'EOF'
+mkdir -p build/bin
+cat > build/bin/cp << 'EOF'
 #!/bin/bash
 # Remove any --silent flags from the arguments
 args=()
@@ -282,12 +282,14 @@ for arg in "$@"; do
 done
 
 # Call the real cp with filtered arguments
-/bin/cp "${args[@]}"
+exec /bin/cp "${args[@]}"
 EOF
-chmod +x build/cp
+chmod +x build/bin/cp
 
 # Configure CMake to use our wrapper
-cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PROGRAM_PATH="$PWD" ..
+cd build
+export PATH="$PWD/bin:$PATH"
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 echo "Setup complete!"
-echo "You can now run: cd build && make -j\$(nproc)" 
+echo "You can now run: make -j\$(nproc)" 
