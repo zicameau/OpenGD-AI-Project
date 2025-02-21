@@ -103,12 +103,16 @@ apply_custom_files() {
     # Create directories first
     create_directories
     
+    # Create 1k directory if it doesn't exist
+    mkdir -p external/axmol/1k
+    
     # Replace the CMake files
     cp patches/axmol/AXBuildHelpers.cmake external/axmol/cmake/Modules/AXBuildHelpers.cmake
     cp patches/axmol/AXBuildPredefinitions.cmake external/axmol/cmake/Modules/AXBuildPredefinitions.cmake
     cp patches/axmol/AXBuildSet.cmake external/axmol/cmake/Modules/AXBuildSet.cmake
     cp patches/axmol/AXShaderHelpers.cmake external/axmol/cmake/Modules/AXShaderHelpers.cmake
     cp patches/axmol/AXOptionHelpers.cmake external/axmol/cmake/Modules/AXOptionHelpers.cmake
+    cp patches/axmol/fetch.cmake external/axmol/cmake/Modules/AXFetchHelpers.cmake
     cp patches/axmol/fetch.cmake external/axmol/1k/fetch.cmake
     cp patches/axmol/zlib.cmake external/axmol/3rdparty/zlib/CMakeLists.txt
     cp patches/axmol/chipmunk.cmake external/axmol/3rdparty/chipmunk/src/CMakeLists.txt

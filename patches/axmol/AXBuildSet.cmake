@@ -3,6 +3,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/AXBuildHelpers.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/AXBuildPredefinitions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/AXShaderHelpers.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/AXOptionHelpers.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/AXFetchHelpers.cmake)
 include(CMakeDependentOption)
 
 # print cmake version
