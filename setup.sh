@@ -29,7 +29,9 @@ install_dependencies() {
             libxrandr-dev \
             libxinerama-dev \
             libxcursor-dev \
-            libxi-dev
+            libxi-dev \
+            wget \
+            unzip
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
@@ -46,12 +48,23 @@ setup_submodules() {
 setup_axslcc() {
     print_status "Setting up axslcc"
     
-    # Create symbolic link for axslcc in axmol tools directory
-    mkdir -p external/axmol/tools
-    ln -sf ../../axslcc external/axmol/tools/axslcc
+    # Create tools directory if it doesn't exist
+    mkdir -p external/axmol/tools/axslcc
     
-    # Make axslcc executable
-    chmod +x external/axslcc/axslcc
+    # Download precompiled axslcc based on system architecture
+    ARCH=$(uname -m)
+    if [ "$ARCH" = "x86_64" ]; then
+        print_status "Downloading axslcc for x86_64"
+        wget -O axslcc.zip "https://github.com/axmolengine/axslcc/releases/download/v0.2/axslcc-linux-x86_64.zip"
+        unzip -o axslcc.zip -d external/axmol/tools/
+        rm axslcc.zip
+        
+        # Make axslcc executable
+        chmod +x external/axmol/tools/axslcc/axslcc
+    else
+        print_status "Unsupported architecture: $ARCH"
+        exit 1
+    fi
 }
 
 # Function to setup Axmol engine
