@@ -74,13 +74,26 @@ setup_axslcc() {
     find external/axmol/tools/axslcc -name "axslcc" -type f -exec chmod +x {} \;
 }
 
+# Function to create necessary directories
+create_directories() {
+    print_status "Creating necessary directories"
+    
+    # Create build directories
+    mkdir -p build/3rdparty/fmt
+    mkdir -p build/3rdparty/zlib
+    mkdir -p build/runtime/axslc
+    
+    # Create CMake module directories
+    mkdir -p external/axmol/cmake/Modules
+    mkdir -p external/axmol/1k
+}
+
 # Function to apply custom files
 apply_custom_files() {
     print_status "Applying custom files"
     
-    # Create the necessary directories
-    mkdir -p external/axmol/cmake/Modules
-    mkdir -p external/axmol/1k
+    # Create directories first
+    create_directories
     
     # Replace the CMake files
     cp patches/axmol/AXBuildHelpers.cmake external/axmol/cmake/Modules/AXBuildHelpers.cmake
