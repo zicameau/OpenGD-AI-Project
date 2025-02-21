@@ -417,3 +417,9 @@ add_custom_target(run_tests
     COMMAND OpenGDTests
     DEPENDS OpenGDTests
 )
+
+# Fix binary directory conflict
+add_subdirectory(external/axmol EXCLUDE_FROM_ALL)
+
+# Add the ax_setup_app_config command
+include(${_AX_ROOT}/cmake/Modules/AxSetup.cmake)
