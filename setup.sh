@@ -67,7 +67,9 @@ install_dependencies() {
             libxcursor1 \
             libxext6 \
             x11proto-dev \
-            libglu1-mesa-dev
+            libglu1-mesa-dev \
+            x11-utils \
+            x11-common
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
@@ -189,6 +191,18 @@ install_cmake() {
     # Update and install
     sudo apt-get update
     sudo apt-get install -y cmake
+}
+
+# Debug function
+debug_x11() {
+    echo "=== X11 Debug Information ==="
+    echo "Searching for libX11.so:"
+    find /usr -name "libX11.so*"
+    echo -e "\npkg-config information:"
+    pkg-config --libs --cflags x11
+    echo -e "\nX11 directory contents:"
+    ls -l /usr/lib/x86_64-linux-gnu/libX11*
+    echo "==========================="
 }
 
 # Main execution
@@ -333,7 +347,11 @@ ls -l /usr/include/X11/
 # Clean CMake cache
 rm -rf CMakeCache.txt CMakeFiles/
 
-# Configure CMake build with specific Clang version and X11 paths
+# Store X11 library path
+X11_LIB_PATH=$(find /usr -name "libX11.so" -print -quit)
+X11_LIB_DIR=$(dirname "${X11_LIB_PATH}")
+
+# Configure CMake build with explicit X11 paths
 cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -344,7 +362,9 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_C_COMPILER_FORCED=TRUE \
       -DCMAKE_CXX_COMPILER_FORCED=TRUE \
       -DX11_INCLUDE_DIR=/usr/include/X11 \
-      -DX11_LIBRARIES=/usr/lib/x86_64-linux-gnu \
+      -DX11_X11_LIB="${X11_LIB_PATH}" \
+      -DX11_X11_INCLUDE_PATH=/usr/include/X11 \
+      -DCMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu \
       .. --debug-output --trace-expand
 
 # Build the project
@@ -406,3 +426,6 @@ function(axslcc_target_compile_shaders target)
     add_dependencies(${target} ${target}_shaders)
 endfunction()
 EOF
+
+# Run X11 debug
+debug_x11

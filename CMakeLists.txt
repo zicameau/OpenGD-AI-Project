@@ -23,13 +23,25 @@
 # THE SOFTWARE.
 # ****************************************************************************/
 
-# Add at the very top of the file, before any other compiler settings
+# Add at the top of the file, before any other compiler settings
 set(CMAKE_C_COMPILER /usr/bin/clang-14)
 set(CMAKE_CXX_COMPILER /usr/bin/clang++-14)
 
 # Force CMake to use Clang
 set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
+# Explicitly set X11 paths
+set(X11_INCLUDE_DIR "/usr/include/X11")
+set(X11_LIBRARIES "/usr/lib/x86_64-linux-gnu")
+set(X11_X11_LIB "/usr/lib/x86_64-linux-gnu/libX11.so")
+set(X11_X11_INCLUDE_PATH "/usr/include/X11")
+
+# Add X11 to the module path
+list(APPEND CMAKE_MODULE_PATH "/usr/lib/x86_64-linux-gnu/cmake")
+
+# Force pkg-config to look in the right place
+set(ENV{PKG_CONFIG_PATH} "/usr/lib/x86_64-linux-gnu/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 if(POLICY CMP0175)
     cmake_policy(SET CMP0175 NEW)
