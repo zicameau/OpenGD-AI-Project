@@ -23,6 +23,14 @@
 # THE SOFTWARE.
 # ****************************************************************************/
 
+# Add at the very top of the file, before any other compiler settings
+set(CMAKE_C_COMPILER /usr/bin/clang-14)
+set(CMAKE_CXX_COMPILER /usr/bin/clang++-14)
+
+# Force CMake to use Clang
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
 if(POLICY CMP0175)
     cmake_policy(SET CMP0175 NEW)
 endif()

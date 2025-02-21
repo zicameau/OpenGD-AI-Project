@@ -305,6 +305,7 @@ echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
 # Configure CMake build with Clang and C++20
 cd build
+rm -rf CMakeCache.txt CMakeFiles/
 cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -312,6 +313,8 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_CXX_STANDARD_REQUIRED=ON \
       -DCMAKE_C_COMPILER=/usr/bin/clang-14 \
       -DCMAKE_CXX_COMPILER=/usr/bin/clang++-14 \
+      -DCMAKE_C_COMPILER_FORCED=TRUE \
+      -DCMAKE_CXX_COMPILER_FORCED=TRUE \
       .. --debug-output --trace-expand
 
 echo "Setup complete!"
