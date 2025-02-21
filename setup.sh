@@ -51,20 +51,19 @@ setup_axslcc() {
     # Create tools directory if it doesn't exist
     mkdir -p external/axmol/tools/axslcc
     
-    # Download precompiled axslcc based on system architecture
-    ARCH=$(uname -m)
-    if [ "$ARCH" = "x86_64" ]; then
-        print_status "Downloading axslcc for x86_64"
-        wget -O axslcc.zip "https://github.com/axmolengine/axslcc/releases/download/0.2.0/axslcc-linux-x86_64.zip"
-        unzip -o axslcc.zip -d external/axmol/tools/
-        rm axslcc.zip
-        
-        # Make axslcc executable
-        chmod +x external/axmol/tools/axslcc/axslcc
-    else
-        print_status "Unsupported architecture: $ARCH"
-        exit 1
-    fi
+    # Download and extract axslcc
+    print_status "Downloading axslcc"
+    wget -O axslcc.tar.gz "https://github.com/axmolengine/axslcc/releases/download/v1.9.6/axslcc-1.9.6-linux.tar.gz"
+    
+    # Extract to the tools directory
+    print_status "Extracting axslcc"
+    tar -xzf axslcc.tar.gz -C external/axmol/tools/axslcc --strip-components=1
+    
+    # Cleanup
+    rm axslcc.tar.gz
+    
+    # Make axslcc executable
+    chmod +x external/axmol/tools/axslcc/axslcc
 }
 
 # Function to setup Axmol engine
