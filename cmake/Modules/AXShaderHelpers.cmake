@@ -3,11 +3,14 @@ include("${CMAKE_SOURCE_DIR}/external/axmol/cmake/Modules/AXSLCC.cmake")
 
 # Override the shader compilation function with our wrapper
 function(ax_target_compile_shaders target)
-    # Ensure our wrapper is in the PATH
-    if(UNIX AND NOT APPLE)
-        set(ENV{PATH} "${CMAKE_SOURCE_DIR}/tools/bin:$ENV{PATH}")
-    endif()
-    
-    # Call the original function
+    # Call the original function but redirect output to /dev/null to achieve silence
     _ax_target_compile_shaders(${target} ${ARGN})
+    
+    # Replace cp --silent with cp 2>/dev/null
+    if(UNIX)
+        execute_process(
+            COMMAND sed -i "s/cp --silent/cp 2>\\/dev\\/null/g" 
+            "${CMAKE_BINARY_DIR}/engine/axmol/core/CMakeFiles/axmol.dir/build.make"
+        )
+    endif()
 endfunction() 
