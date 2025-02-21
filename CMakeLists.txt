@@ -31,6 +31,16 @@ set(CMAKE_CXX_COMPILER /usr/bin/clang++-14)
 set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 
+# Set C++ standard flags explicitly for Clang
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Add compiler feature flags
+add_compile_options(-stdlib=libc++)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+
 # Explicitly set X11 paths
 set(X11_INCLUDE_DIR "/usr/include/X11")
 set(X11_LIBRARIES "/usr/lib/x86_64-linux-gnu")
@@ -42,6 +52,9 @@ list(APPEND CMAKE_MODULE_PATH "/usr/lib/x86_64-linux-gnu/cmake")
 
 # Force pkg-config to look in the right place
 set(ENV{PKG_CONFIG_PATH} "/usr/lib/x86_64-linux-gnu/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+
+# Enable language support
+enable_language(CXX)
 
 if(POLICY CMP0175)
     cmake_policy(SET CMP0175 NEW)
@@ -140,29 +153,8 @@ target_include_directories(${PROJECT_NAME}
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE axmol)
 
-# Set C++20 as the standard for the entire project
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Add debug output after setting the standard
-message(STATUS "CMAKE_CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
-message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-message(STATUS "CMAKE_CXX_STANDARD_REQUIRED: ${CMAKE_CXX_STANDARD_REQUIRED}")
-
-# Add compiler flags if needed
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-    message(STATUS "Added -std=c++20 flag")
-endif()
-
 # Debug output for OpenAL specifically
 message(STATUS "OpenAL CMake file location: ${CMAKE_CURRENT_SOURCE_DIR}/external/axmol/3rdparty/openal/CMakeLists.txt")
-
-# Try forcing C++20 for all targets including external ones
-set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard to be used")
-set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard")
-add_compile_options(-std=c++20)
 
 # Additional debug for compiler capabilities
 message(STATUS "Compiler features: ${CMAKE_CXX_COMPILE_FEATURES}")
