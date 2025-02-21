@@ -114,6 +114,9 @@ apply_custom_files() {
     cp patches/axmol/chipmunk.cmake external/axmol/3rdparty/chipmunk/src/CMakeLists.txt
     cp patches/axmol/chipmunk_root.cmake external/axmol/3rdparty/chipmunk/CMakeLists.txt
     cp patches/axmol/fmt.cmake external/axmol/3rdparty/fmt/CMakeLists.txt
+    cp patches/axmol/core.cmake external/axmol/core/CMakeLists.txt
+    cp patches/axmol/3rdparty.cmake external/axmol/3rdparty/CMakeLists.txt
+    cp patches/axmol/freetype.cmake external/axmol/3rdparty/freetype/CMakeLists.txt
     
     # Remove problematic directories
     rm -rf external/axmol/3rdparty/chipmunk/demo
