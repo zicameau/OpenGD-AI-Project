@@ -30,8 +30,12 @@ install_dependencies() {
             libxinerama-dev \
             libxcursor-dev \
             libxi-dev \
-            wget \
-            unzip
+            libx11-6 \
+            libgl1 \
+            libasound2 \
+            libevdev2 \
+            libpulse0 \
+            libvlc5
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
@@ -48,30 +52,20 @@ setup_submodules() {
 setup_axslcc() {
     print_status "Setting up axslcc"
     
-    # Create tools directory if it doesn't exist
-    mkdir -p external/axmol/tools/axslcc
-    
     # Download axslcc
     print_status "Downloading axslcc"
-    wget -O axslcc.tar.gz "https://github.com/axmolengine/axslcc/releases/download/v1.9.6/axslcc-1.9.6-linux.tar.gz"
+    wget -O axslcc.tar.gz https://github.com/axmolengine/axslcc/releases/download/v1.9.6/axslcc-1.9.6-linux.tar.gz
     
-    # Extract to a temporary directory and check contents
+    # Extract axslcc
     print_status "Extracting axslcc"
-    mkdir -p temp_axslcc
-    tar -xzf axslcc.tar.gz -C temp_axslcc
+    mkdir -p external/axslcc/bin
+    tar -xzf axslcc.tar.gz -C external/axslcc/bin
+    rm axslcc.tar.gz
     
-    # List contents to debug
+    # Check contents
     print_status "Checking axslcc contents"
-    ls -la temp_axslcc
-    
-    # Copy contents to the correct location
-    cp -r temp_axslcc/* external/axmol/tools/axslcc/
-    
-    # Cleanup
-    rm -rf temp_axslcc axslcc.tar.gz
-    
-    # Find and make the axslcc binary executable
-    find external/axmol/tools/axslcc -name "axslcc" -type f -exec chmod +x {} \;
+    ls -la external/axslcc/bin
+    chmod +x external/axslcc/bin/axslcc
 }
 
 # Function to create necessary directories
@@ -131,10 +125,16 @@ apply_custom_files() {
 # Function to setup Axmol engine
 setup_axmol() {
     print_status "Setting up Axmol engine"
-    cd external/axmol
-    # Apply custom files
-    cd ../..
-    apply_custom_files
+    
+    # Apply any custom files
+    print_status "Applying custom files"
+    if [ -d "patches/axmol" ]; then
+        cp -r patches/axmol/* external/axmol/
+    fi
+    
+    # Create necessary directories
+    print_status "Creating necessary directories"
+    mkdir -p Content
 }
 
 # Function to setup build directory
@@ -142,9 +142,6 @@ setup_build() {
     print_status "Setting up build directory"
     rm -rf build
     mkdir -p build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
-    cd ..
 }
 
 # Main execution
@@ -167,55 +164,39 @@ setup_build
 
 print_status "Setup completed successfully!"
 
+# Setup Python environment
 echo "Setting up Python environment..."
 
-# Check if Python is installed
-if ! command -v python3 &> /dev/null; then
-    echo "Installing Python..."
-    sudo apt-get update
-    sudo apt-get install -y python3 python3-pip
-else
-    echo "Python is already installed"
-fi
+# Install Python dependencies
+pip3 install pyyaml
 
-# Check if pip is installed
-if ! command -v pip3 &> /dev/null; then
-    echo "Installing pip..."
-    sudo apt-get install -y python3-pip
-else
-    echo "pip is already installed"
-fi
-
-# Install pyyaml if not already installed
-if ! python3 -c "import yaml" &> /dev/null; then
-    echo "Installing pyyaml..."
-    pip3 install pyyaml
-else
-    echo "pyyaml is already installed"
-fi
-
-# Make all Python and shell scripts executable
+# Make scripts executable
 echo "Making scripts executable..."
 find . -type f -name "*.sh" -exec chmod +x {} \;
 find . -type f -name "*.py" -exec chmod +x {} \;
 
-# Run the CMake analyzer first
+# Run the CMake analyzer
 echo "Analyzing CMake files..."
-./analyze_cmake.py
+if [ -f "./analyze_cmake.py" ]; then
+    ./analyze_cmake.py
+fi
 
 # Run the Python setup script
 echo "Running setup script..."
-./setup.py
+if [ -f "./setup.py" ]; then
+    ./setup.py
+fi
 
-# Make any shell scripts in the project executable (including those created during setup)
+# Make shell scripts executable
 echo "Making all shell scripts executable..."
 find . -type f -name "*.sh" -exec chmod +x {} \;
 find external -type f -name "axslcc" -exec chmod +x {} \; 2>/dev/null || true
 
-# Source the updated bashrc to apply any PATH changes
+# Source bashrc
 source ~/.bashrc
 
-echo "Setup complete! You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
+echo "Setup complete! You can now build the project:"
+echo "cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j\$(nproc)"
 
 # Create external directory
 mkdir -p external
