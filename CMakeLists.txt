@@ -30,14 +30,49 @@ project(OpenGD_Game)
 
 # Set _AX_ROOT and add cmake modules path
 set(_AX_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/axmol")
-list(APPEND CMAKE_MODULE_PATH 
-    "${_AX_ROOT}/cmake/Modules"
-    "${_AX_ROOT}/cmake"
+
+# Check if axmol directory exists
+if(NOT EXISTS ${_AX_ROOT})
+    message(FATAL_ERROR "Axmol directory not found at: ${_AX_ROOT}")
+endif()
+
+# Check for cmake directories
+set(_CMAKE_DIR "${_AX_ROOT}/cmake")
+set(_MODULES_DIR "${_CMAKE_DIR}/Modules")
+
+if(NOT EXISTS ${_CMAKE_DIR})
+    message(FATAL_ERROR "Axmol cmake directory not found at: ${_CMAKE_DIR}")
+endif()
+
+# List all cmake files in both directories
+file(GLOB CMAKE_FILES 
+    "${_CMAKE_DIR}/*.cmake"
+    "${_MODULES_DIR}/*.cmake"
 )
 
-# Include required modules
-include(AxmolSetup)
-include(AxmolBuildHelpers)
+message(STATUS "Found CMake files:")
+foreach(FILE ${CMAKE_FILES})
+    message(STATUS "  ${FILE}")
+endforeach()
+
+# Add cmake paths
+list(APPEND CMAKE_MODULE_PATH 
+    "${_CMAKE_DIR}/Modules"
+    "${_CMAKE_DIR}"
+)
+
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
+# Try to include the modules
+include(axmol OPTIONAL RESULT_VARIABLE AXMOL_FOUND)
+if(NOT AXMOL_FOUND)
+    message(FATAL_ERROR "Could not find axmol.cmake. Available files are listed above.")
+endif()
+
+include(AxmolConfig OPTIONAL RESULT_VARIABLE AXMOL_CONFIG_FOUND)
+if(NOT AXMOL_CONFIG_FOUND)
+    message(FATAL_ERROR "Could not find AxmolConfig.cmake. Available files are listed above.")
+endif()
 
 # Add axmol core with explicit binary directory
 add_subdirectory("${_AX_ROOT}/core" "${CMAKE_BINARY_DIR}/axmol-core-build" EXCLUDE_FROM_ALL)
