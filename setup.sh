@@ -269,28 +269,23 @@ echo "AX_ROOT has been set to: $AX_ROOT"
 echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
 echo "===> Setting up cp wrapper for shader compilation"
-# Create wrapper script in the project root
+# Create wrapper script in the build directory
+mkdir -p build
 echo '#!/bin/bash
 if [[ "$1" == "--silent" ]]; then
     shift
     exec cp -f "$@"
 else
     exec cp "$@"
-fi' > cp_wrapper.sh
-chmod +x cp_wrapper.sh
+fi' > build/cp_wrapper.sh
+chmod +x build/cp_wrapper.sh
 
-# Add current directory to PATH for this session
-export PATH="$PWD:$PATH"
-
-# Create a symlink named 'cp' to our wrapper
+# Create a symlink named 'cp' in the build directory
+cd build
 ln -sf cp_wrapper.sh cp
 
-echo "===> Setting up build directory"
-rm -rf build
-mkdir build
-cd build
+# Configure CMake to use our wrapper
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PROGRAM_PATH="$PWD" ..
 
-# Run CMake with the modified PATH
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-
-echo "Setup complete!" 
+echo "Setup complete!"
+echo "You can now run: cd build && make -j\$(nproc)" 
