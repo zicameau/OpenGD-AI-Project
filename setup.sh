@@ -51,43 +51,26 @@ setup_submodules() {
 # Function to setup axslcc
 setup_axslcc() {
     print_status "Setting up axslcc"
+    cd external/axslcc || exit 1
     
-    # Download axslcc
     print_status "Downloading axslcc"
     wget -O axslcc.tar.gz https://github.com/axmolengine/axslcc/releases/download/v1.9.6/axslcc-1.9.6-linux.tar.gz
     
-    # Extract axslcc
     print_status "Extracting axslcc"
-    mkdir -p external/axslcc/bin
-    tar -xzf axslcc.tar.gz -C external/axslcc/bin
+    tar xf axslcc.tar.gz
     rm axslcc.tar.gz
     
-    # Check contents
     print_status "Checking axslcc contents"
-    ls -la external/axslcc/bin
-    chmod +x external/axslcc/bin/axslcc
+    ls -la
+    
+    cd ../..
 }
 
 # Function to create necessary directories
 create_directories() {
     print_status "Creating necessary directories"
-    
-    # Create build directories with absolute paths
-    local BUILD_DIR="${PWD}/build"
-    mkdir -p "${BUILD_DIR}/3rdparty/fmt"
-    mkdir -p "${BUILD_DIR}/3rdparty/zlib"
-    mkdir -p "${BUILD_DIR}/runtime/axslc"
-    mkdir -p "${BUILD_DIR}/_deps/zlib-src"
-    
-    # Create CMake module directories
-    mkdir -p external/axmol/cmake/Modules
-    mkdir -p external/axmol/1k
-    mkdir -p external/axmol/3rdparty/zlib
-    mkdir -p external/axmol/3rdparty/chipmunk/src
-    mkdir -p external/axmol/3rdparty/fmt
-    
-    # Set permissions
-    chmod -R 777 "${BUILD_DIR}/3rdparty"
+    mkdir -p build
+    mkdir -p Content
 }
 
 # Function to apply custom files
@@ -125,23 +108,19 @@ apply_custom_files() {
 # Function to setup Axmol engine
 setup_axmol() {
     print_status "Setting up Axmol engine"
+    cd external/axmol || exit 1
     
-    # Apply any custom files
     print_status "Applying custom files"
-    if [ -d "patches/axmol" ]; then
-        cp -r patches/axmol/* external/axmol/
-    fi
+    # Add any custom file operations here if needed
     
-    # Create necessary directories
-    print_status "Creating necessary directories"
-    mkdir -p Content
+    cd ../..
 }
 
 # Function to setup build directory
 setup_build() {
     print_status "Setting up build directory"
-    rm -rf build
-    mkdir -p build
+    cd build || exit 1
+    cd ..
 }
 
 # Main execution
