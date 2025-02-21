@@ -83,7 +83,10 @@ if(LINUX)
     list(APPEND GAME_SOURCE ${common_content_files})
 endif()
 
-# Add Axmol as subdirectory
+# Set engine binary path before adding axmol subdirectory
+set(ENGINE_BINARY_PATH "${CMAKE_BINARY_DIR}/engine")
+
+# Add Axmol as subdirectory with explicit binary dir
 add_subdirectory(${_AX_ROOT}/core ${ENGINE_BINARY_PATH}/axmol/core)
 
 # Create executable
