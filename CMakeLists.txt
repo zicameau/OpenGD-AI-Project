@@ -25,13 +25,51 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-set(APP_NAME OpenGD)
+# Set project name first
+project(OpenGD_Game)
 
-project(OpenGD VERSION 1.0)
+# Include axmol cmake modules
+set(_AX_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/axmol")
+list(APPEND CMAKE_MODULE_PATH "${_AX_ROOT}/cmake/Modules")
+
+# Include required modules
+include(AxSetup)
+include(AxBuildHelpers)
+
+# Add axmol core with explicit binary directory
+add_subdirectory("${_AX_ROOT}/core" "${CMAKE_BINARY_DIR}/axmol-core-build" EXCLUDE_FROM_ALL)
+
+# Game source files
+file(GLOB_RECURSE GAME_SOURCES 
+    "src/*.cpp"
+    "src/*.hpp"
+    "src/*.h"
+)
+
+# Create executable
+add_executable(${PROJECT_NAME} ${GAME_SOURCES})
+
+# Setup app config
+ax_setup_app_config(${PROJECT_NAME}
+    COCOS_APP_NAME ${PROJECT_NAME}
+    COCOS_APP_IOS_BUNDLE_ID "org.axmol.hellocpp"
+    COCOS_APP_MAC_BUNDLE_ID "org.axmol.hellocpp"
+)
+
+# Link dependencies
+target_link_libraries(${PROJECT_NAME} PRIVATE axmol)
+
+# Set include directories
+target_include_directories(${PROJECT_NAME} PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${_AX_ROOT}/core/include"
+)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
 
 # Find required packages
 find_package(OpenGL REQUIRED)
