@@ -55,7 +55,7 @@ setup_axslcc() {
     ARCH=$(uname -m)
     if [ "$ARCH" = "x86_64" ]; then
         print_status "Downloading axslcc for x86_64"
-        wget -O axslcc.zip "https://github.com/axmolengine/axslcc/releases/download/v0.2/axslcc-linux-x86_64.zip"
+        wget -O axslcc.zip "https://github.com/axmolengine/axslcc/releases/download/0.2.0/axslcc-linux-x86_64.zip"
         unzip -o axslcc.zip -d external/axmol/tools/
         rm axslcc.zip
         
