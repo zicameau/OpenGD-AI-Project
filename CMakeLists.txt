@@ -418,12 +418,24 @@ add_custom_target(run_tests
     DEPENDS OpenGDTests
 )
 
-# Fix binary directory conflict
-add_subdirectory(external/axmol/core ${CMAKE_BINARY_DIR}/axmol-core)
+# Fix binary directory conflict - use full path
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/axmol/core 
+                 ${CMAKE_BINARY_DIR}/axmol-core-build)
 
-# Include AxSetup module
-include(${_AX_ROOT}/cmake/Modules/AxSetup.cmake)
+# Make sure AxSetup is included before use
+list(APPEND CMAKE_MODULE_PATH "${_AX_ROOT}/cmake/Modules")
+include(AxSetup)
 
 # Fix target name conflict
 set(TARGET_NAME OpenGD_Game)
+project(${TARGET_NAME})
+
+# Define the executable with the new target name
 add_executable(${TARGET_NAME} ${GAME_SOURCES})
+
+# Update the ax_setup_app_config call
+ax_setup_app_config(${TARGET_NAME}
+    COCOS_APP_NAME ${TARGET_NAME}
+    COCOS_APP_IOS_BUNDLE_ID "org.axmol.hellocpp"
+    COCOS_APP_MAC_BUNDLE_ID "org.axmol.hellocpp"
+)
