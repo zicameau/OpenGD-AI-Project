@@ -24,6 +24,7 @@ dependencies:
       - libxcursor-dev
     audio:
       - libasound2-dev
+      - libpulse-dev
     media:
       - libvlc-dev
       - vlc
@@ -33,6 +34,7 @@ dependencies:
       - libcurl4-openssl-dev
       - liblua5.3-dev
       - libfmt-dev
+      - libyaml-cpp-dev
 
 # CMake overrides
 cmake:
@@ -99,6 +101,26 @@ cmake:
                     AXSLCC_OUTPUT_DIR "${AXSLCC_OUT_DIR}"
                 )
             endif()
+        endfunction()
+    
+    - name: AXBuildHelpers
+      path: cmake/Modules/AXBuildHelpers.cmake
+      content: |
+        include(CMakeParseArguments)
+        if(NOT WIN32)
+            return()
+        endif()
+        
+        function(ax_copy_target_dll TARGET_NAME)
+        endfunction()
+        
+        function(ax_copy_bin_dll_to_target TARGET_NAME)
+        endfunction()
+        
+        function(ax_copy_target_to_bin_dir TARGET_NAME)
+        endfunction()
+        
+        function(ax_copy_target_deps_dlls TARGET_NAME)
         endfunction()
     
     - name: AXBuildHelpers
