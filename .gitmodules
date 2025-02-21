@@ -1,6 +1,6 @@
 [submodule "external/axmol"]
 	path = external/axmol
-	url = git@github.com:axmolengine/axmol.git
+	url = git@github.com:zicameau/axmol-zicameau.git
 [submodule "external/axslcc"]
 	path = external/axslcc
 	url = https://github.com/axmolengine/axslcc.git
