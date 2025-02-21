@@ -11,30 +11,52 @@ dependencies:
     build:
       - build-essential
       - cmake
+      - git
       - libx11-dev
       - libgl1-mesa-dev
+      - libpulse-dev
       - libasound2-dev
       - libevdev-dev
       - libgtest-dev
+      - python3-pip
+      - nasm
+      - libvlc-dev
+      - libxrandr-dev
+      - libxinerama-dev
+      - libxcursor-dev
+      - libxi-dev
     runtime:
       - libx11-6
       - libgl1
       - libasound2
       - libevdev2
+      - libpulse0
+      - libvlc5
   debian:
     build:
       - build-essential
       - cmake
+      - git
       - libx11-dev
       - libgl1-mesa-dev
+      - libpulse-dev
       - libasound2-dev
       - libevdev-dev
       - libgtest-dev
+      - python3-pip
+      - nasm
+      - libvlc-dev
+      - libxrandr-dev
+      - libxinerama-dev
+      - libxcursor-dev
+      - libxi-dev
     runtime:
       - libx11-6
       - libgl1
       - libasound2
       - libevdev2
+      - libpulse0
+      - libvlc5
 
 # CMake overrides
 cmake:

@@ -3,6 +3,80 @@
 # Exit on any error
 set -e
 
+# Function to print status messages
+print_status() {
+    echo "===> $1"
+}
+
+# Function to check and install dependencies based on the system
+install_dependencies() {
+    if [ -f /etc/debian_version ]; then
+        print_status "Detected Debian/Ubuntu system"
+        sudo apt-get update
+        sudo apt-get install -y \
+            build-essential \
+            cmake \
+            git \
+            libx11-dev \
+            libgl1-mesa-dev \
+            libpulse-dev \
+            libasound2-dev \
+            libevdev-dev \
+            libgtest-dev \
+            python3-pip \
+            nasm \
+            libvlc-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev
+    else
+        print_status "Unsupported system. Please install dependencies manually."
+        exit 1
+    fi
+}
+
+# Function to initialize and update submodules
+setup_submodules() {
+    print_status "Initializing and updating git submodules"
+    git submodule update --init --recursive
+}
+
+# Function to setup Axmol engine
+setup_axmol() {
+    print_status "Setting up Axmol engine"
+    cd external/axmol
+    # Add any specific Axmol setup steps here if needed
+    cd ../..
+}
+
+# Function to setup build directory
+setup_build() {
+    print_status "Setting up build directory"
+    rm -rf build
+    mkdir -p build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    cd ..
+}
+
+# Main execution
+print_status "Starting setup process"
+
+# Install system dependencies
+install_dependencies
+
+# Setup git submodules
+setup_submodules
+
+# Setup Axmol
+setup_axmol
+
+# Setup build directory
+setup_build
+
+print_status "Setup completed successfully!"
+
 echo "Setting up Python environment..."
 
 # Check if Python is installed
