@@ -40,4 +40,47 @@ function(ax_mark_multi_resources)
     endforeach()
 endfunction()
 
+# Add compile definitions for axmol targets
+function(use_ax_compile_define target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "use_ax_compile_define: ${target} is not a valid target")
+    endif()
+    
+    target_compile_definitions(${target}
+        PRIVATE
+            $<$<CONFIG:Debug>:COCOS2D_DEBUG=1>
+            $<$<CONFIG:Release>:NDEBUG>
+            $<$<BOOL:${AX_USE_GL}>:AX_USE_GL>
+            $<$<BOOL:${AX_USE_METAL}>:AX_USE_METAL>
+            $<$<BOOL:${AX_USE_VULKAN}>:AX_USE_VULKAN>
+            $<$<BOOL:${AX_USE_WEBGPU}>:AX_USE_WEBGPU>
+            $<$<BOOL:${AX_USE_COMPAT_GL}>:AX_USE_COMPAT_GL>
+            $<$<BOOL:${AX_USE_ALSOFT}>:AX_USE_ALSOFT>
+    )
+endfunction()
+
+# Add compile options for axmol targets
+function(use_ax_compile_options target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "use_ax_compile_options: ${target} is not a valid target")
+    endif()
+
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W3 /WX-)
+    else()
+        target_compile_options(${target} PRIVATE -Wall -Wno-deprecated-declarations)
+    endif()
+endfunction()
+
+# Add dependencies for axmol targets
+function(use_ax_depend target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "use_ax_depend: ${target} is not a valid target")
+    endif()
+
+    if(UNIX AND NOT APPLE AND NOT ANDROID)
+        target_link_libraries(${target} PRIVATE X11)
+    endif()
+endfunction()
+
 # Add other helper functions as needed 
