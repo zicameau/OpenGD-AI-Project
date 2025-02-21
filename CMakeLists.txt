@@ -57,9 +57,10 @@ option(AX_USE_DRAGONBONES "Use DragonBones" OFF)
 option(AX_USE_LIVE2D "Use Live2D" OFF)
 option(AX_USE_AUDIO "Enable audio support" ON)
 
-# Add Axmol as subdirectory
-add_subdirectory(${_AX_ROOT})
+# Add axmol subdirectory but skip tests
+set(BUILD_TESTS OFF CACHE BOOL "Build tests" FORCE)
+add_subdirectory(external/axmol)
 
 # Add your project's source files
-# add_executable(${PROJECT_NAME} src/main.cpp)
-# target_link_libraries(${PROJECT_NAME} PRIVATE axmol)
+add_executable(${PROJECT_NAME} src/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE axmol)
