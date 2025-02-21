@@ -314,9 +314,6 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_CXX_COMPILER=/usr/bin/clang++-14 \
       .. --debug-output --trace-expand
 
-# Build the project
-make -j$(nproc)
-
 echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)"
 
@@ -373,11 +370,3 @@ function(axslcc_target_compile_shaders target)
     add_dependencies(${target} ${target}_shaders)
 endfunction()
 EOF
-
-# Configure CMake
-mkdir -p build
-cd build || exit 1
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-
-echo "Setup complete!"
-echo "You can now run: make -j\$(nproc)" 
