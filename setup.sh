@@ -275,37 +275,58 @@ cmake -DCMAKE_BUILD_TYPE=Debug ..
 echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)"
 
-echo "===> Patching axmol CMake files for shader compilation"
+echo "===> Setting up AXSLCC shader compilation"
 
-# Search for AXSLCC.cmake in multiple possible locations
-AXSLCC_PATHS=(
-    "external/axmol/cmake/Modules/AXSLCC.cmake"
-    "external/axmol/cmake/AXSLCC.cmake"
-    "external/axslcc/cmake/AXSLCC.cmake"
-)
+# Create cmake directory if it doesn't exist
+mkdir -p external/axmol/cmake/Modules
 
-AXSLCC_CMAKE=""
-for path in "${AXSLCC_PATHS[@]}"; do
-    if [ -f "$path" ]; then
-        AXSLCC_CMAKE="$path"
-        break
-    fi
-done
+# Create AXSLCC.cmake with Linux-compatible commands
+cat > external/axmol/cmake/Modules/AXSLCC.cmake << 'EOF'
+function(axslcc_target_compile_shaders target)
+    set(options)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs VERT_SOURCES FRAG_SOURCES)
+    cmake_parse_arguments(AXSLCC "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-if [ -z "$AXSLCC_CMAKE" ]; then
-    echo "Warning: Could not find AXSLCC.cmake - will continue without patching"
-else
-    # Backup original file
-    cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
+    if(NOT AXSLCC_OUTDIR)
+        set(AXSLCC_OUTDIR "${CMAKE_BINARY_DIR}/runtime/axslc")
+    endif()
 
-    # Replace the cp --silent command in the original file
-    sed -i 's/cp --silent/cp -f/g' "$AXSLCC_CMAKE"
-fi
+    file(MAKE_DIRECTORY ${AXSLCC_OUTDIR})
 
-# Create build directory if it doesn't exist
-mkdir -p build
+    foreach(vert ${AXSLCC_VERT_SOURCES})
+        get_filename_component(VERT_NAME ${vert} NAME_WE)
+        set(OUT_FILE "${AXSLCC_OUTDIR}/${VERT_NAME}_vs")
+        
+        add_custom_command(
+            OUTPUT ${OUT_FILE}
+            COMMAND ${CMAKE_COMMAND} -E copy ${vert} ${OUT_FILE}
+            DEPENDS ${vert}
+            COMMENT "Compiling shader ${vert} for GLSL330 ..."
+        )
+        list(APPEND OUT_FILES ${OUT_FILE})
+    endforeach()
+
+    foreach(frag ${AXSLCC_FRAG_SOURCES})
+        get_filename_component(FRAG_NAME ${frag} NAME_WE)
+        set(OUT_FILE "${AXSLCC_OUTDIR}/${FRAG_NAME}_fs")
+        
+        add_custom_command(
+            OUTPUT ${OUT_FILE}
+            COMMAND ${CMAKE_COMMAND} -E copy ${frag} ${OUT_FILE}
+            DEPENDS ${frag}
+            COMMENT "Compiling shader ${frag} for GLSL330 ..."
+        )
+        list(APPEND OUT_FILES ${OUT_FILE})
+    endforeach()
+
+    add_custom_target(${target}_shaders DEPENDS ${OUT_FILES})
+    add_dependencies(${target} ${target}_shaders)
+endfunction()
+EOF
 
 # Configure CMake
+mkdir -p build
 cd build || exit 1
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 
