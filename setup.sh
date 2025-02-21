@@ -60,7 +60,14 @@ install_dependencies() {
             libxcb-shape0-dev \
             libxcb-randr0-dev \
             libxcb-render-util0-dev \
-            libxcb-xinerama0-dev
+            libxcb-xinerama0-dev \
+            libx11-xcb1 \
+            libxrandr2 \
+            libxinerama1 \
+            libxcursor1 \
+            libxext6 \
+            x11proto-dev \
+            libglu1-mesa-dev
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
@@ -318,9 +325,15 @@ echo "Setup complete!"
 echo "AX_ROOT has been set to: $AX_ROOT"
 echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
-# Configure CMake build with Clang and C++20
-cd build
+# Verify X11 library locations
+print_status "Verifying X11 libraries..."
+ls -l /usr/lib/x86_64-linux-gnu/libX11.so
+ls -l /usr/include/X11/
+
+# Clean CMake cache
 rm -rf CMakeCache.txt CMakeFiles/
+
+# Configure CMake build with specific Clang version and X11 paths
 cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -330,7 +343,12 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_CXX_COMPILER=/usr/bin/clang++-14 \
       -DCMAKE_C_COMPILER_FORCED=TRUE \
       -DCMAKE_CXX_COMPILER_FORCED=TRUE \
+      -DX11_INCLUDE_DIR=/usr/include/X11 \
+      -DX11_LIBRARIES=/usr/lib/x86_64-linux-gnu \
       .. --debug-output --trace-expand
+
+# Build the project
+make -j$(nproc)
 
 echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)"
