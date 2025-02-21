@@ -293,8 +293,7 @@ for path in "${AXSLCC_PATHS[@]}"; do
 done
 
 if [ -z "$AXSLCC_CMAKE" ]; then
-    echo "Error: Could not find AXSLCC.cmake"
-    # Continue anyway since the file might be created during CMake configuration
+    echo "Warning: Could not find AXSLCC.cmake - will continue without patching"
 else
     # Backup original file
     cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
@@ -303,8 +302,11 @@ else
     sed -i 's/cp --silent/cp -f/g' "$AXSLCC_CMAKE"
 fi
 
+# Create build directory if it doesn't exist
+mkdir -p build
+
 # Configure CMake
-cd build
+cd build || exit 1
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 echo "Setup complete!"
