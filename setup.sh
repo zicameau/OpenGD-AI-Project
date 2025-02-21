@@ -163,7 +163,11 @@ install_cmake() {
 }
 
 # Main execution
-print_status "Starting setup process"
+echo "===> Starting setup process"
+
+# Create Resources directory
+echo "===> Creating Resources directory"
+mkdir -p "${PWD}/Resources"
 
 # Install system dependencies
 install_dependencies
