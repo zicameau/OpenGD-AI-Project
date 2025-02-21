@@ -404,7 +404,7 @@ if (_AX_USE_PREBUILT) # support windows and linux
 
     include(AXLinkHelpers)
     ax_link_cxx_prebuilt(${APP_NAME} ${_AX_ROOT} ${AX_PREBUILT_DIR})
-endif()
+)
 
 ax_setup_app_props(${APP_NAME})
 
@@ -518,3 +518,27 @@ ax_setup_app_config(${TARGET_NAME}
     COCOS_APP_IOS_BUNDLE_ID "org.axmol.hellocpp"
     COCOS_APP_MAC_BUNDLE_ID "org.axmol.hellocpp"
 )
+
+# Include core build configuration
+include(AXBuildHelpers)
+include(AXBuildSet)
+include(AXConfigDefine)
+include(AXConfigDepend)
+
+# Set up Axmol engine
+set(AX_PROJ_NAME ${PROJECT_NAME})
+set(AX_PROJ_RUNTIME_NAME ${PROJECT_NAME})
+set(AX_ROOT ${_AX_ROOT})
+
+# Configure Axmol build options
+option(AX_USE_COMPAT_GL "Use OpenGL compatibility profile" OFF)
+option(AX_USE_CURL "Use libcurl for HttpClient" ON)
+option(AX_USE_WEBP "Use WebP codec" ON)
+option(AX_USE_JPEG "Use JPEG codec" ON)
+option(AX_USE_SPINE "Use Spine" OFF)
+option(AX_USE_DRAGONBONES "Use DragonBones" OFF)
+option(AX_USE_LIVE2D "Use Live2D" OFF)
+option(AX_USE_AUDIO "Enable audio support" ON)
+
+# Add Axmol as subdirectory
+add_subdirectory(${_AX_ROOT})
