@@ -57,8 +57,8 @@ endforeach()
 
 # Add cmake paths
 list(APPEND CMAKE_MODULE_PATH 
-    "${_CMAKE_DIR}/Modules"
-    "${_CMAKE_DIR}"
+    "${_AX_ROOT}/cmake/Modules"
+    "${_AX_ROOT}/cmake"
 )
 
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
@@ -221,7 +221,10 @@ endif()
 
 set(CMAKE_MODULE_PATH ${_AX_ROOT}/cmake/Modules/)
 
+include(AXBuildHelpers)
 include(AXBuildSet)
+include(AXConfigDefine)
+include(AXConfigDepend)
 
 set(_AX_USE_PREBUILT FALSE)
 
