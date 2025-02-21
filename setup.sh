@@ -142,11 +142,27 @@ setup_build() {
     mkdir -p build
 }
 
+# Function to install latest CMake
+install_cmake() {
+    print_status "Installing latest CMake"
+    
+    # Add Kitware's repository and key
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list
+
+    # Update and install
+    sudo apt-get update
+    sudo apt-get install -y cmake
+}
+
 # Main execution
 print_status "Starting setup process"
 
 # Install system dependencies
 install_dependencies
+
+# Install latest CMake
+install_cmake
 
 # Setup git submodules
 setup_submodules
