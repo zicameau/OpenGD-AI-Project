@@ -273,4 +273,21 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 echo "Setup complete!"
+echo "You can now run: make -j\$(nproc)"
+
+echo "===> Patching axmol CMake files for shader compilation"
+AXMOL_CMAKE_DIR="external/axmol/cmake/Modules"
+AXSLCC_CMAKE="$AXMOL_CMAKE_DIR/AXSLCC.cmake"
+
+# Backup original file
+cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
+
+# Replace the cp --silent command in the original file
+sed -i 's/cp --silent/cp -f/g' "$AXSLCC_CMAKE"
+
+# Configure CMake
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)" 
