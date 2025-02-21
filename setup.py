@@ -47,6 +47,8 @@ class ProjectSetup:
         
         if self.platform in ['ubuntu', 'debian']:
             self.run_command(['sudo', 'apt-get', 'update'])
+            # Add libpulse-dev to the list of dependencies
+            deps.extend(['libpulse-dev'])
             self.run_command(['sudo', 'apt-get', 'install', '-y'] + deps)
     
     def setup_engine(self):

@@ -45,6 +45,8 @@ run.bat.txt
 build-docs/
 bin
 out
+venv
+executable
 /proj.android/.idea/*
 /proj.android/app/.cxx/*
 /proj.android/app/src/org/axmol/lib
@@ -63,3 +65,4 @@ CMakeCache.txt
 # clion
 cmake-build-*
 .idea
+.aider*
