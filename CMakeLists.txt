@@ -120,8 +120,8 @@ target_include_directories(${PROJECT_NAME}
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE axmol)
 
-# Set C++17 as the standard for the entire project
-set(CMAKE_CXX_STANDARD 17)
+# Set C++20 as the standard for the entire project
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -132,17 +132,17 @@ message(STATUS "CMAKE_CXX_STANDARD_REQUIRED: ${CMAKE_CXX_STANDARD_REQUIRED}")
 
 # Add compiler flags if needed
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-    message(STATUS "Added -std=c++17 flag")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+    message(STATUS "Added -std=c++20 flag")
 endif()
 
 # Debug output for OpenAL specifically
 message(STATUS "OpenAL CMake file location: ${CMAKE_CURRENT_SOURCE_DIR}/external/axmol/3rdparty/openal/CMakeLists.txt")
 
-# Try forcing C++17 for all targets including external ones
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard to be used")
+# Try forcing C++20 for all targets including external ones
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ standard to be used")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard")
-add_compile_options(-std=c++17)
+add_compile_options(-std=c++20)
 
 # Additional debug for compiler capabilities
 message(STATUS "Compiler features: ${CMAKE_CXX_COMPILE_FEATURES}")
