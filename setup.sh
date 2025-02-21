@@ -271,18 +271,20 @@ echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 echo "===> Setting up cp wrapper for shader compilation"
 # Create wrapper script in the build directory
 mkdir -p build
-echo '#!/bin/bash
-if [[ "$1" == "--silent" ]]; then
-    shift
-    exec cp -f "$@"
-else
-    exec cp "$@"
-fi' > build/cp_wrapper.sh
-chmod +x build/cp_wrapper.sh
+cat > build/cp << 'EOF'
+#!/bin/bash
+# Remove any --silent flags from the arguments
+args=()
+for arg in "$@"; do
+  if [ "$arg" != "--silent" ]; then
+    args+=("$arg")
+  fi
+done
 
-# Create a symlink named 'cp' in the build directory
-cd build
-ln -sf cp_wrapper.sh cp
+# Call the real cp with filtered arguments
+/bin/cp "${args[@]}"
+EOF
+chmod +x build/cp
 
 # Configure CMake to use our wrapper
 cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PROGRAM_PATH="$PWD" ..
