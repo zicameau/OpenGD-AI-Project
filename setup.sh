@@ -35,7 +35,8 @@ install_dependencies() {
             libasound2 \
             libevdev2 \
             libpulse0 \
-            libvlc5
+            libvlc5 \
+            libgtk-3-dev
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
