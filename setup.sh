@@ -109,6 +109,19 @@ apply_custom_files() {
 setup_axmol() {
     print_status "Setting up Axmol engine"
     
+    # Check if PowerShell is installed
+    if ! command -v pwsh &> /dev/null; then
+        print_status "Installing PowerShell..."
+        # Download and install the Microsoft repository GPG key
+        curl -O https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        rm packages-microsoft-prod.deb
+
+        # Update package list and install PowerShell
+        sudo apt-get update
+        sudo apt-get install -y powershell
+    fi
+
     # Apply all patches from patches/axmol directory
     print_status "Applying custom files"
     if [ -d "patches/axmol" ]; then
