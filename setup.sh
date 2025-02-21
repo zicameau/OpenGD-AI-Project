@@ -82,10 +82,16 @@ create_directories() {
     mkdir -p build/3rdparty/fmt
     mkdir -p build/3rdparty/zlib
     mkdir -p build/runtime/axslc
+    mkdir -p build/_deps/zlib-src
     
     # Create CMake module directories
     mkdir -p external/axmol/cmake/Modules
     mkdir -p external/axmol/1k
+    mkdir -p external/axmol/3rdparty/zlib
+    
+    # Create fmt config directories
+    mkdir -p build/3rdparty/fmt
+    chmod 777 build/3rdparty/fmt
 }
 
 # Function to apply custom files
@@ -101,6 +107,7 @@ apply_custom_files() {
     cp patches/axmol/AXBuildSet.cmake external/axmol/cmake/Modules/AXBuildSet.cmake
     cp patches/axmol/AXShaderHelpers.cmake external/axmol/cmake/Modules/AXShaderHelpers.cmake
     cp patches/axmol/fetch.cmake external/axmol/1k/fetch.cmake
+    cp patches/axmol/zlib.cmake external/axmol/3rdparty/zlib/CMakeLists.txt
 }
 
 # Function to setup Axmol engine
