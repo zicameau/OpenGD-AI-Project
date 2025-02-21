@@ -119,8 +119,7 @@ setup_axmol() {
 # Function to setup build directory
 setup_build() {
     print_status "Setting up build directory"
-    cd build || exit 1
-    cd ..
+    mkdir -p build
 }
 
 # Main execution
