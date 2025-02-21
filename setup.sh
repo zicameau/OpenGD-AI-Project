@@ -103,9 +103,6 @@ apply_custom_files() {
     # Create directories first
     create_directories
     
-    # Create 1k directory if it doesn't exist
-    mkdir -p external/axmol/1k
-    
     # Replace the CMake files
     cp patches/axmol/AXBuildHelpers.cmake external/axmol/cmake/Modules/AXBuildHelpers.cmake
     cp patches/axmol/AXBuildPredefinitions.cmake external/axmol/cmake/Modules/AXBuildPredefinitions.cmake
@@ -121,9 +118,14 @@ apply_custom_files() {
     cp patches/axmol/core.cmake external/axmol/core/CMakeLists.txt
     cp patches/axmol/3rdparty.cmake external/axmol/3rdparty/CMakeLists.txt
     cp patches/axmol/freetype.cmake external/axmol/3rdparty/freetype/CMakeLists.txt
+    cp patches/axmol/cpp_tests.cmake external/axmol/tests/cpp-tests/CMakeLists.txt
     
     # Remove problematic directories
     rm -rf external/axmol/3rdparty/chipmunk/demo
+    
+    # Create downloads directory
+    mkdir -p "${PWD}/build/downloads"
+    chmod -R 777 "${PWD}/build/downloads"
 }
 
 # Function to setup Axmol engine
