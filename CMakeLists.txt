@@ -80,15 +80,6 @@ set(content_folder
     "${CMAKE_CURRENT_SOURCE_DIR}/Content"
 )
 
-if(LINUX)
-    list(APPEND GAME_SOURCE
-         proj.linux/main.cpp
-    )
-    # Handle content files for Linux
-    ax_mark_multi_resources(common_content_files RES_TO "Content" FOLDERS ${content_folder})
-    list(APPEND GAME_SOURCE ${common_content_files})
-endif()
-
 # Set engine binary path before adding axmol subdirectory
 set(ENGINE_BINARY_PATH "${CMAKE_BINARY_DIR}/engine")
 
@@ -97,6 +88,20 @@ add_subdirectory(${_AX_ROOT}/core ${ENGINE_BINARY_PATH}/axmol/core)
 
 # Create executable
 add_executable(${PROJECT_NAME} ${GAME_SOURCE} ${GAME_HEADER})
+
+if(LINUX)
+    # Add Linux-specific source files
+    target_sources(${PROJECT_NAME} PRIVATE
+        proj.linux/main.cpp
+    )
+    
+    # Handle content files for Linux after target is created
+    ax_mark_multi_resources(
+        TARGET ${PROJECT_NAME}
+        FOLDERS 
+            ${CMAKE_CURRENT_SOURCE_DIR}/Resources
+    )
+endif()
 
 # Include directories
 target_include_directories(${PROJECT_NAME}
