@@ -209,10 +209,13 @@ def capture_screen():
 
 def jump():
     """Simulate spacebar press."""
-    if IS_WINDOWS:
-        pyautogui.press('space')
-    else:
-        subprocess.run(['xdotool', 'key', 'space'])
+    try:
+        if IS_WINDOWS:
+            pyautogui.press('space')
+        else:
+            subprocess.run(['xdotool', 'key', 'space'])
+    except Exception as e:
+        print(f"❌ ERROR simulating jump: {e}")
 
 def close_game():
     """Close OpenGD using platform-specific commands."""

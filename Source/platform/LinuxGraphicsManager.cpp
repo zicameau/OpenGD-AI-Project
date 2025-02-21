@@ -42,7 +42,8 @@ bool LinuxGraphicsManager::initializeContext() {
     std::lock_guard<std::mutex> lock(_contextMutex);
     try {
         if (!glfwInit()) {
-            throw std::runtime_error("Failed to initialize GLFW");
+            syslog(LOG_ERR, "Failed to initialize GLFW");
+            return false;
         }
         
         // Set error callback

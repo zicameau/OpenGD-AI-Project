@@ -16,6 +16,11 @@ LinuxAudioManager* LinuxAudioManager::getInstance() {
 
 LinuxAudioManager::LinuxAudioManager() {
     // Initialize with PulseAudio as primary, ALSA as fallback
+    _usePulseAudio = false;
+    _mainloop = nullptr;
+    _context = nullptr;
+    _stream = nullptr;
+    _alsaHandle = nullptr;
 }
 
 bool LinuxAudioManager::initializeAudio() {

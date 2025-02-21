@@ -20,7 +20,8 @@ bool LinuxResourceManager::loadResource(const std::string& path) {
         
         // Validate path
         if (!std::filesystem::exists(path)) {
-            throw std::runtime_error("Resource file not found: " + path);
+            syslog(LOG_ERR, "Resource file not found: %s", path.c_str());
+            return false;
         }
         
         // Create appropriate resource type based on extension

@@ -57,7 +57,10 @@ float LinuxPerformanceMonitor::getAverageFrameTime() const {
 
 float LinuxPerformanceMonitor::getCPUUsage() const {
     std::ifstream statFile("/proc/stat");
-    if (!statFile.is_open()) return 0.0f;
+    if (!statFile.is_open()) {
+        syslog(LOG_ERR, "Failed to open /proc/stat for CPU usage");
+        return 0.0f;
+    }
 
     std::string line;
     std::getline(statFile, line);
