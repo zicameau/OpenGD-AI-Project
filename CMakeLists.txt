@@ -419,7 +419,11 @@ add_custom_target(run_tests
 )
 
 # Fix binary directory conflict
-add_subdirectory(external/axmol EXCLUDE_FROM_ALL)
+add_subdirectory(external/axmol/core ${CMAKE_BINARY_DIR}/axmol-core)
 
-# Add the ax_setup_app_config command
+# Include AxSetup module
 include(${_AX_ROOT}/cmake/Modules/AxSetup.cmake)
+
+# Fix target name conflict
+set(TARGET_NAME OpenGD_Game)
+add_executable(${TARGET_NAME} ${GAME_SOURCES})
