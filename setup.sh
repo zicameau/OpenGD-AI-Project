@@ -169,6 +169,16 @@ echo "===> Starting setup process"
 echo "===> Creating Resources directory"
 mkdir -p "${PWD}/Resources"
 
+# Install newer GCC (GCC 12)
+echo "===> Installing GCC 12"
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt update
+sudo apt install -y gcc-12 g++-12
+
+# Set GCC 12 as the default compiler for the build
+export CC=gcc-12
+export CXX=g++-12
+
 # Install system dependencies
 install_dependencies
 
