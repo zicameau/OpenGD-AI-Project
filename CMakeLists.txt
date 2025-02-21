@@ -31,6 +31,11 @@ cmake_minimum_required(VERSION 3.22)
 
 project(OpenGD_Game)
 
+# Add these near the top, after project() declaration
+message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "C++ compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+
 # Set Axmol root directory
 set(_AX_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/axmol")
 
@@ -120,10 +125,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Add debug output after setting the standard
+message(STATUS "CMAKE_CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_CXX_STANDARD_REQUIRED: ${CMAKE_CXX_STANDARD_REQUIRED}")
+
 # Add compiler flags if needed
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    message(STATUS "Added -std=c++17 flag")
 endif()
+
+# Debug output for OpenAL specifically
+message(STATUS "OpenAL CMake file location: ${CMAKE_CURRENT_SOURCE_DIR}/external/axmol/3rdparty/openal/CMakeLists.txt")
+
+# Try forcing C++17 for all targets including external ones
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard to be used")
+set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard")
+add_compile_options(-std=c++17)
+
+# Additional debug for compiler capabilities
+message(STATUS "Compiler features: ${CMAKE_CXX_COMPILE_FEATURES}")
 
 # Add cp wrapper to PATH for shader compilation
 if(UNIX AND NOT APPLE)
