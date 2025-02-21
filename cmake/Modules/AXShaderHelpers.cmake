@@ -24,7 +24,7 @@ function(ax_target_compile_shaders target)
                 continue()
             endif()
             
-            # Add custom command using CMake's copy command instead of cp
+            # Use CMake's file(COPY) instead of cp
             add_custom_command(
                 TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different

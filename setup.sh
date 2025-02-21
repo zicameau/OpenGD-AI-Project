@@ -177,7 +177,29 @@ setup_axmol
 # Setup build directory
 setup_build
 
-print_status "Setup completed successfully!"
+echo "===> Setting up build directory"
+mkdir -p build
+
+# Create a cp wrapper script that converts --silent to -f
+echo "===> Creating cp wrapper"
+cat > build/cp << 'EOF'
+#!/bin/bash
+args=()
+for arg in "$@"; do
+    if [ "$arg" = "--silent" ]; then
+        args+=("-f")
+    else
+        args+=("$arg")
+    fi
+done
+/bin/cp "${args[@]}"
+EOF
+chmod +x build/cp
+
+# Add the wrapper to the PATH for the build process
+export PATH="$PWD/build:$PATH"
+
+echo "===> Setup completed successfully!"
 
 # Setup Python environment
 echo "Setting up Python environment..."
