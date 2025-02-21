@@ -105,15 +105,22 @@ apply_custom_files() {
     chmod -R 777 "${PWD}/build/downloads"
 }
 
-# Function to setup Axmol engine
+# Function to setup Axmol
 setup_axmol() {
     print_status "Setting up Axmol engine"
-    cd external/axmol || exit 1
     
+    # Apply all patches from patches/axmol directory
     print_status "Applying custom files"
-    # Add any custom file operations here if needed
-    
-    cd ../..
+    if [ -d "patches/axmol" ]; then
+        for patch_file in patches/axmol/*; do
+            if [ -f "$patch_file" ]; then
+                filename=$(basename "$patch_file")
+                target_path="external/axmol/cmake/Modules/$filename"
+                print_status "Applying patch: $filename"
+                cp "$patch_file" "$target_path"
+            fi
+        done
+    fi
 }
 
 # Function to setup build directory
