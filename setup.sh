@@ -45,7 +45,22 @@ install_dependencies() {
             libc++-14-dev \
             libc++abi-14-dev \
             libopenal-dev \
-            libwebkit2gtk-4.0-dev
+            libwebkit2gtk-4.0-dev \
+            libxext-dev \
+            libxfixes-dev \
+            libxrender-dev \
+            libx11-xcb-dev \
+            libxcb-glx0-dev \
+            libxcb-keysyms1-dev \
+            libxcb-image0-dev \
+            libxcb-shm0-dev \
+            libxcb-icccm4-dev \
+            libxcb-sync-dev \
+            libxcb-xfixes0-dev \
+            libxcb-shape0-dev \
+            libxcb-randr0-dev \
+            libxcb-render-util0-dev \
+            libxcb-xinerama0-dev
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
