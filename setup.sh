@@ -38,7 +38,13 @@ install_dependencies() {
             libvlc5 \
             libgtk-3-dev \
             gcc-10 \
-            g++-10
+            g++-10 \
+            pkg-config \
+            clang \
+            clang++ \
+            lld \
+            libopenal-dev \
+            libwebkit2gtk-4.0-dev
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
@@ -296,14 +302,19 @@ echo "Setup complete!"
 echo "AX_ROOT has been set to: $AX_ROOT"
 echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
-# Configure CMake build with C++20 and verbose output
+# Configure CMake build with Clang and C++20
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DCMAKE_CXX_STANDARD=20 \
       -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+      -DCMAKE_C_COMPILER=clang \
+      -DCMAKE_CXX_COMPILER=clang++ \
       .. --debug-output --trace-expand
+
+# Build the project
+make -j$(nproc)
 
 echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)"
