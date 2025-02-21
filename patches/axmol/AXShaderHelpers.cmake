@@ -17,4 +17,46 @@ function(ax_handle_shaders target)
     if(shader_files)
         target_sources(${target} PRIVATE ${shader_files})
     endif()
+endfunction()
+
+# Function to compile shaders for a target
+function(ax_target_compile_shaders target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "Target ${target} does not exist")
+        return()
+    endif()
+
+    # Get all shader files
+    ax_find_shaders(shader_files)
+    
+    if(shader_files)
+        # Add custom commands for each shader
+        foreach(shader ${shader_files})
+            get_filename_component(shader_name ${shader} NAME)
+            get_filename_component(shader_ext ${shader} EXT)
+            
+            # Determine shader type
+            if(shader_ext MATCHES "\\.(frag|fs|fsh)$")
+                set(shader_type "frag")
+            elseif(shader_ext MATCHES "\\.(vert|vs|vsh)$")
+                set(shader_type "vert")
+            else()
+                message(WARNING "Unknown shader type for file: ${shader}")
+                continue()
+            endif()
+            
+            # Set output directory
+            set(output_dir "${CMAKE_BINARY_DIR}/runtime/axslc")
+            file(MAKE_DIRECTORY ${output_dir})
+            
+            # Add custom command
+            add_custom_command(
+                TARGET ${target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    ${shader} ${output_dir}/${shader_name}
+                DEPENDS ${shader}
+                COMMENT "Copying shader ${shader_name}"
+            )
+        endforeach()
+    endif()
 endfunction() 
