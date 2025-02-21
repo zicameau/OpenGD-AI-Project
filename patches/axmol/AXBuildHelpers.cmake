@@ -79,7 +79,12 @@ function(use_ax_depend target)
     endif()
 
     if(UNIX AND NOT APPLE AND NOT ANDROID)
-        target_link_libraries(${target} PRIVATE X11)
+        find_package(X11 REQUIRED)
+        target_link_libraries(${target} 
+            PRIVATE 
+                ${X11_LIBRARIES}
+                ${CMAKE_DL_LIBS}
+        )
     endif()
 endfunction()
 

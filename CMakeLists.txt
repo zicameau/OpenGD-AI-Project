@@ -23,6 +23,10 @@
 # THE SOFTWARE.
 # ****************************************************************************/
 
+if(POLICY CMP0175)
+    cmake_policy(SET CMP0175 NEW)
+endif()
+
 cmake_minimum_required(VERSION 3.22)
 
 project(OpenGD_Game)
