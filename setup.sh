@@ -284,38 +284,42 @@ mkdir -p external/axmol/cmake/Modules
 cat > external/axmol/cmake/Modules/AXSLCC.cmake << 'EOF'
 function(axslcc_target_compile_shaders target)
     set(options)
-    set(oneValueArgs OUTDIR)
+    set(oneValueArgs)
     set(multiValueArgs VERT_SOURCES FRAG_SOURCES)
-    cmake_parse_arguments(AXSLCC "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    if(NOT AXSLCC_OUTDIR)
-        set(AXSLCC_OUTDIR "${CMAKE_BINARY_DIR}/runtime/axslc")
-    endif()
+    set(OUT_FILES)
+    set(OUT_DIR "${CMAKE_BINARY_DIR}/runtime/axslc")
+    file(MAKE_DIRECTORY ${OUT_DIR})
 
-    file(MAKE_DIRECTORY ${AXSLCC_OUTDIR})
-
-    foreach(vert ${AXSLCC_VERT_SOURCES})
-        get_filename_component(VERT_NAME ${vert} NAME_WE)
-        set(OUT_FILE "${AXSLCC_OUTDIR}/${VERT_NAME}_vs")
+    foreach(VERT ${ARGS_VERT_SOURCES})
+        get_filename_component(VERT_NAME ${VERT} NAME_WE)
+        set(OUT_FILE "${OUT_DIR}/${VERT_NAME}_vs")
         
         add_custom_command(
             OUTPUT ${OUT_FILE}
-            COMMAND ${CMAKE_COMMAND} -E copy ${vert} ${OUT_FILE}
-            DEPENDS ${vert}
-            COMMENT "Compiling shader ${vert} for GLSL330 ..."
+            COMMAND ${CMAKE_COMMAND} -E echo "Compiling shader ${VERT} for GLSL330 ..."
+            COMMAND ${AXSLCC_EXECUTABLE} -V -p 330 -o ${OUT_FILE} ${VERT}
+            COMMAND ${CMAKE_COMMAND} -E copy ${OUT_FILE} ${OUT_FILE}
+            DEPENDS ${VERT}
+            COMMENT ""
+            VERBATIM
         )
         list(APPEND OUT_FILES ${OUT_FILE})
     endforeach()
 
-    foreach(frag ${AXSLCC_FRAG_SOURCES})
-        get_filename_component(FRAG_NAME ${frag} NAME_WE)
-        set(OUT_FILE "${AXSLCC_OUTDIR}/${FRAG_NAME}_fs")
+    foreach(FRAG ${ARGS_FRAG_SOURCES})
+        get_filename_component(FRAG_NAME ${FRAG} NAME_WE)
+        set(OUT_FILE "${OUT_DIR}/${FRAG_NAME}_fs")
         
         add_custom_command(
             OUTPUT ${OUT_FILE}
-            COMMAND ${CMAKE_COMMAND} -E copy ${frag} ${OUT_FILE}
-            DEPENDS ${frag}
-            COMMENT "Compiling shader ${frag} for GLSL330 ..."
+            COMMAND ${CMAKE_COMMAND} -E echo "Compiling shader ${FRAG} for GLSL330 ..."
+            COMMAND ${AXSLCC_EXECUTABLE} -F -p 330 -o ${OUT_FILE} ${FRAG}
+            COMMAND ${CMAKE_COMMAND} -E copy ${OUT_FILE} ${OUT_FILE}
+            DEPENDS ${FRAG}
+            COMMENT ""
+            VERBATIM
         )
         list(APPEND OUT_FILES ${OUT_FILE})
     endforeach()
