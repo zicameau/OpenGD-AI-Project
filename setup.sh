@@ -89,9 +89,9 @@ create_directories() {
     mkdir -p external/axmol/1k
     mkdir -p external/axmol/3rdparty/zlib
     
-    # Create fmt config directories
-    mkdir -p build/3rdparty/fmt
-    chmod 777 build/3rdparty/fmt
+    # Create fmt config directories with full path
+    mkdir -p "${PWD}/build/3rdparty/fmt"
+    chmod 777 "${PWD}/build/3rdparty/fmt"
 }
 
 # Function to apply custom files
@@ -106,6 +106,7 @@ apply_custom_files() {
     cp patches/axmol/AXBuildPredefinitions.cmake external/axmol/cmake/Modules/AXBuildPredefinitions.cmake
     cp patches/axmol/AXBuildSet.cmake external/axmol/cmake/Modules/AXBuildSet.cmake
     cp patches/axmol/AXShaderHelpers.cmake external/axmol/cmake/Modules/AXShaderHelpers.cmake
+    cp patches/axmol/AXOptionHelpers.cmake external/axmol/cmake/Modules/AXOptionHelpers.cmake
     cp patches/axmol/fetch.cmake external/axmol/1k/fetch.cmake
     cp patches/axmol/zlib.cmake external/axmol/3rdparty/zlib/CMakeLists.txt
 }
