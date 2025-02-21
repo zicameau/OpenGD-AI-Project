@@ -74,12 +74,21 @@ setup_axslcc() {
     find external/axmol/tools/axslcc -name "axslcc" -type f -exec chmod +x {} \;
 }
 
+# Function to apply custom files
+apply_custom_files() {
+    print_status "Applying custom files"
+    
+    # Replace the AXBuildHelpers.cmake file
+    cp patches/axmol/AXBuildHelpers.cmake external/axmol/cmake/Modules/AXBuildHelpers.cmake
+}
+
 # Function to setup Axmol engine
 setup_axmol() {
     print_status "Setting up Axmol engine"
     cd external/axmol
-    # Any additional Axmol setup steps can go here
+    # Apply custom files
     cd ../..
+    apply_custom_files
 }
 
 # Function to setup build directory

@@ -1,0 +1,11 @@
+# check powershell
+if(WIN32)
+    find_program(POWERSHELL_PATH NAMES pwsh powershell)
+    if(NOT POWERSHELL_PATH)
+        message(STATUS "powershell not found.")
+        message(FATAL_ERROR "Please install it https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell, and run CMake again.")
+    endif()
+    set(USE_POWERSHELL TRUE)
+else()
+    set(USE_POWERSHELL FALSE)
+endif() 
