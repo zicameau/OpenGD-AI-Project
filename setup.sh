@@ -296,11 +296,13 @@ echo "Setup complete!"
 echo "AX_ROOT has been set to: $AX_ROOT"
 echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
-# Remove the cp wrapper setup code and just configure CMake
+# Configure CMake build with C++17 and verbose output
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_STANDARD_REQUIRED=ON \
       .. --debug-output --trace-expand
 
 echo "Setup complete!"
