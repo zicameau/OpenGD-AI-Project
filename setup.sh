@@ -42,11 +42,23 @@ setup_submodules() {
     git submodule update --init --recursive
 }
 
+# Function to setup axslcc
+setup_axslcc() {
+    print_status "Setting up axslcc"
+    
+    # Create symbolic link for axslcc in axmol tools directory
+    mkdir -p external/axmol/tools
+    ln -sf ../../axslcc external/axmol/tools/axslcc
+    
+    # Make axslcc executable
+    chmod +x external/axslcc/axslcc
+}
+
 # Function to setup Axmol engine
 setup_axmol() {
     print_status "Setting up Axmol engine"
     cd external/axmol
-    # Add any specific Axmol setup steps here if needed
+    # Any additional Axmol setup steps can go here
     cd ../..
 }
 
@@ -68,6 +80,9 @@ install_dependencies
 
 # Setup git submodules
 setup_submodules
+
+# Setup axslcc
+setup_axslcc
 
 # Setup Axmol
 setup_axmol

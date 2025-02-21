@@ -7,24 +7,57 @@ import shutil
 from pathlib import Path
 
 def cleanup():
+    """Clean up build artifacts while preserving submodules"""
+    # Directories to clean
+    dirs_to_clean = [
+        'build',
+        '__pycache__',
+        '.pytest_cache',
+        'dist',
+        'bin'
+    ]
+    
+    # Files to clean
+    extensions_to_clean = [
+        '*.pyc',
+        '*.pyo',
+        '*.pyd',
+        '*.so',
+        '*.dll',
+        '*.dylib',
+        '*.log',
+        '*.cache'
+    ]
+    
+    project_root = Path.cwd()
+    
+    # Directories to preserve
+    preserve_dirs = ['external/axmol', 'external/axslcc']
+    
+    # Clean directories
+    for dir_name in dirs_to_clean:
+        for path in project_root.rglob(dir_name):
+            if not any(str(preserve) in str(path) for preserve in preserve_dirs):
+                print(f"Removing directory: {path}")
+                shutil.rmtree(path, ignore_errors=True)
+    
+    # Clean files
+    for ext in extensions_to_clean:
+        for path in project_root.rglob(ext):
+            if not any(str(preserve) in str(path) for preserve in preserve_dirs):
+                print(f"Removing file: {path}")
+                path.unlink()
+
     try:
         # Load configuration
         with open('project.yml', 'r') as f:
             config = yaml.safe_load(f)
-        
-        project_root = Path.cwd()
         
         # Remove external directory
         external_dir = project_root / 'external'
         if external_dir.exists():
             print("Removing external dependencies...")
             shutil.rmtree(external_dir)
-        
-        # Remove build directory
-        build_dir = project_root / 'build'
-        if build_dir.exists():
-            print("Removing build directory...")
-            shutil.rmtree(build_dir)
         
         # Clean up PATH additions in .bashrc
         bashrc_path = Path.home() / '.bashrc'
