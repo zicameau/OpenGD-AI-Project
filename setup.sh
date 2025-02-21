@@ -179,14 +179,19 @@ echo "cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j\$(nproc)"
 # Create external directory
 mkdir -p external
 
-# Clone Axmol Engine if not already present
+# Clone or update Axmol Engine
 if [ ! -d "external/axmol" ]; then
     echo "Cloning Axmol Engine..."
     git clone git@github.com:axmolengine/axmol.git external/axmol
-else
-    echo "Axmol Engine already exists, updating..."
     cd external/axmol
-    git pull
+    git checkout dev
+    cd ../..
+else
+    echo "Axmol Engine already exists, checking out dev branch..."
+    cd external/axmol
+    git fetch origin
+    git checkout dev
+    git reset --hard origin/dev
     cd ../..
 fi
 
