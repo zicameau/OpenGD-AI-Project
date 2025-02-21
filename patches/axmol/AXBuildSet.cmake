@@ -45,13 +45,4 @@ endif()
 
 message(STATUS "ARCH_ALIAS:${ARCH_ALIAS}")
 
-# Function to handle cmake_dependent_option
-function(cmake_dependent_option option doc default depends force)
-    if(${depends})
-        option(${option} "${doc}" "${default}")
-    else()
-        set(${option} "${force}" CACHE BOOL "${doc}" FORCE)
-    endif()
-endfunction()
-
 # ... (rest of the file remains the same) 

@@ -78,21 +78,22 @@ setup_axslcc() {
 create_directories() {
     print_status "Creating necessary directories"
     
-    # Create build directories
-    mkdir -p build/3rdparty/fmt
-    mkdir -p build/3rdparty/zlib
-    mkdir -p build/runtime/axslc
-    mkdir -p build/_deps/zlib-src
+    # Create build directories with absolute paths
+    local BUILD_DIR="${PWD}/build"
+    mkdir -p "${BUILD_DIR}/3rdparty/fmt"
+    mkdir -p "${BUILD_DIR}/3rdparty/zlib"
+    mkdir -p "${BUILD_DIR}/runtime/axslc"
+    mkdir -p "${BUILD_DIR}/_deps/zlib-src"
     
     # Create CMake module directories
     mkdir -p external/axmol/cmake/Modules
     mkdir -p external/axmol/1k
     mkdir -p external/axmol/3rdparty/zlib
     mkdir -p external/axmol/3rdparty/chipmunk/src
+    mkdir -p external/axmol/3rdparty/fmt
     
-    # Create fmt config directories with full path and permissions
-    mkdir -p "${PWD}/build/3rdparty/fmt"
-    chmod -R 777 "${PWD}/build/3rdparty"
+    # Set permissions
+    chmod -R 777 "${BUILD_DIR}/3rdparty"
 }
 
 # Function to apply custom files
@@ -111,8 +112,10 @@ apply_custom_files() {
     cp patches/axmol/fetch.cmake external/axmol/1k/fetch.cmake
     cp patches/axmol/zlib.cmake external/axmol/3rdparty/zlib/CMakeLists.txt
     cp patches/axmol/chipmunk.cmake external/axmol/3rdparty/chipmunk/src/CMakeLists.txt
+    cp patches/axmol/chipmunk_root.cmake external/axmol/3rdparty/chipmunk/CMakeLists.txt
+    cp patches/axmol/fmt.cmake external/axmol/3rdparty/fmt/CMakeLists.txt
     
-    # Remove problematic demo directory
+    # Remove problematic directories
     rm -rf external/axmol/3rdparty/chipmunk/demo
 }
 
