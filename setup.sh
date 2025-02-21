@@ -78,14 +78,16 @@ setup_axslcc() {
 apply_custom_files() {
     print_status "Applying custom files"
     
-    # Create the Modules directory if it doesn't exist
+    # Create the necessary directories
     mkdir -p external/axmol/cmake/Modules
+    mkdir -p external/axmol/1k
     
     # Replace the CMake files
     cp patches/axmol/AXBuildHelpers.cmake external/axmol/cmake/Modules/AXBuildHelpers.cmake
     cp patches/axmol/AXBuildPredefinitions.cmake external/axmol/cmake/Modules/AXBuildPredefinitions.cmake
     cp patches/axmol/AXBuildSet.cmake external/axmol/cmake/Modules/AXBuildSet.cmake
     cp patches/axmol/AXShaderHelpers.cmake external/axmol/cmake/Modules/AXShaderHelpers.cmake
+    cp patches/axmol/fetch.cmake external/axmol/1k/fetch.cmake
 }
 
 # Function to setup Axmol engine
