@@ -1,20 +1,39 @@
 # Include the original shader helpers
 include("${CMAKE_SOURCE_DIR}/external/axmol/cmake/Modules/AXSLCC.cmake")
 
-# Override the shader compilation function with our wrapper
+# Override the shader compilation function
 function(ax_target_compile_shaders target)
     # Create the output directory
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/runtime/axslc")
     
-    # Call the original function
-    _ax_target_compile_shaders(${target})
+    # Get all shader files
+    ax_find_shaders(shader_files)
     
-    if(UNIX AND NOT APPLE)
-        # Add a custom command to modify all build.make files
-        add_custom_command(TARGET ${target} PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E echo "Patching build files for shader compilation..."
-            COMMAND find "${CMAKE_BINARY_DIR}" -name "build.make" -type f -exec sed -i "s/cp --silent/cp -f/g" {} +
-            VERBATIM
-        )
+    if(shader_files)
+        foreach(shader ${shader_files})
+            get_filename_component(shader_name ${shader} NAME)
+            get_filename_component(shader_ext ${shader} EXT)
+            
+            # Determine shader type and output name
+            if(shader_ext MATCHES "\\.(frag|fs|fsh)$")
+                set(output_name "${shader_name}_fs")
+            elseif(shader_ext MATCHES "\\.(vert|vs|vsh)$")
+                set(output_name "${shader_name}_vs")
+            else()
+                message(WARNING "Unknown shader type for file: ${shader}")
+                continue()
+            endif()
+            
+            # Add custom command using CMake's copy command instead of cp
+            add_custom_command(
+                TARGET ${target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${shader}"
+                    "${CMAKE_BINARY_DIR}/runtime/axslc/${output_name}"
+                DEPENDS "${shader}"
+                COMMENT "Copying shader ${shader_name}"
+                VERBATIM
+            )
+        endforeach()
     endif()
 endfunction() 

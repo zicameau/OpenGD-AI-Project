@@ -54,6 +54,9 @@ list(APPEND CMAKE_MODULE_PATH
 # Add our cmake modules directory to the module path
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
+# Include our custom shader helpers before other includes
+include(AXShaderHelpers)
+
 # Include core build configuration
 include(AXBuildHelpers)
 include(AXBuildSet)
