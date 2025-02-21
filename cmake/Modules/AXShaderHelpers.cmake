@@ -10,10 +10,11 @@ function(ax_target_compile_shaders target)
     _ax_target_compile_shaders(${target})
     
     if(UNIX AND NOT APPLE)
-        # Modify the build commands to use cp -f instead of cp --silent
+        # Add a custom command to modify all build.make files
         add_custom_command(TARGET ${target} PRE_BUILD
-            COMMAND sed -i "s/cp --silent/cp -f/g" 
-            "${CMAKE_BINARY_DIR}/engine/axmol/core/CMakeFiles/axmol.dir/build.make"
+            COMMAND ${CMAKE_COMMAND} -E echo "Patching build files for shader compilation..."
+            COMMAND find "${CMAKE_BINARY_DIR}" -name "build.make" -type f -exec sed -i "s/cp --silent/cp -f/g" {} +
+            VERBATIM
         )
     endif()
 endfunction() 
