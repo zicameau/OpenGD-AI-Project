@@ -163,27 +163,7 @@ install_cmake() {
 }
 
 # Main execution
-echo "===> Starting setup process"
-
-# Create Resources directory
-echo "===> Creating Resources directory"
-mkdir -p "${PWD}/Resources"
-
-# Set compiler environment variables
-echo "===> Setting up C++ compiler"
-export CC=/usr/bin/gcc
-export CXX=/usr/bin/g++
-
-# Make the exports permanent for the build
-echo "export CC=/usr/bin/gcc" >> ~/.bashrc
-echo "export CXX=/usr/bin/g++" >> ~/.bashrc
-source ~/.bashrc
-
-# Verify compiler settings
-echo "===> Verifying compiler settings:"
-echo "CC=$CC"
-echo "CXX=$CXX"
-g++ --version
+print_status "Starting setup process"
 
 # Install system dependencies
 install_dependencies
@@ -318,7 +298,10 @@ echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
 
 # Remove the cp wrapper setup code and just configure CMake
 cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake -DCMAKE_BUILD_TYPE=Debug \
+      -DCMAKE_VERBOSE_MAKEFILE=ON \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      .. --debug-output --trace-expand
 
 echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)"
