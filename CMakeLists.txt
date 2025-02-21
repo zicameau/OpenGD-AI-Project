@@ -28,13 +28,16 @@ cmake_minimum_required(VERSION 3.22)
 # Set project name first
 project(OpenGD_Game)
 
-# Include axmol cmake modules
+# Set _AX_ROOT and add cmake modules path
 set(_AX_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/axmol")
-list(APPEND CMAKE_MODULE_PATH "${_AX_ROOT}/cmake/Modules")
+list(APPEND CMAKE_MODULE_PATH 
+    "${_AX_ROOT}/cmake/Modules"
+    "${_AX_ROOT}/cmake"
+)
 
 # Include required modules
-include(AxSetup)
-include(AxBuildHelpers)
+include(AxmolSetup)
+include(AxmolBuildHelpers)
 
 # Add axmol core with explicit binary directory
 add_subdirectory("${_AX_ROOT}/core" "${CMAKE_BINARY_DIR}/axmol-core-build" EXCLUDE_FROM_ALL)
