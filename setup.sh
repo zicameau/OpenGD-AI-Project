@@ -40,9 +40,10 @@ install_dependencies() {
             gcc-10 \
             g++-10 \
             pkg-config \
-            clang \
-            clang++ \
-            lld \
+            clang-14 \
+            lld-14 \
+            libc++-14-dev \
+            libc++abi-14-dev \
             libopenal-dev \
             libwebkit2gtk-4.0-dev
     else
@@ -309,8 +310,8 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DCMAKE_CXX_STANDARD=20 \
       -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-      -DCMAKE_C_COMPILER=clang \
-      -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_C_COMPILER=/usr/bin/clang-14 \
+      -DCMAKE_CXX_COMPILER=/usr/bin/clang++-14 \
       .. --debug-output --trace-expand
 
 # Build the project
