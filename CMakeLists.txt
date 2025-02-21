@@ -55,9 +55,50 @@ list(APPEND CMAKE_MODULE_PATH
 include(AXBuildHelpers)
 include(AXBuildSet)
 
-# Add Axmol as subdirectory
-add_subdirectory(${_AX_ROOT})
+# The common cross-platforms source files and header files
+file(GLOB_RECURSE GAME_HEADER
+    Source/*.h
+    Source/*.hpp
+)
+file(GLOB_RECURSE GAME_SOURCE
+    Source/*.cpp
+    Source/*.c
+)
 
-# Add your project's source files
-add_executable(${PROJECT_NAME} src/main.cpp)
+set(GAME_INC_DIRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source"
+)
+
+# Add content folder
+set(content_folder
+    "${CMAKE_CURRENT_SOURCE_DIR}/Content"
+)
+
+if(LINUX)
+    list(APPEND GAME_SOURCE
+         proj.linux/main.cpp
+    )
+    # Handle content files for Linux
+    ax_mark_multi_resources(common_content_files RES_TO "Content" FOLDERS ${content_folder})
+    list(APPEND GAME_SOURCE ${common_content_files})
+endif()
+
+# Add Axmol as subdirectory
+add_subdirectory(${_AX_ROOT}/core ${ENGINE_BINARY_PATH}/axmol/core)
+
+# Create executable
+add_executable(${PROJECT_NAME} ${GAME_SOURCE} ${GAME_HEADER})
+
+# Include directories
+target_include_directories(${PROJECT_NAME}
+    PRIVATE ${GAME_INC_DIRS}
+)
+
+# Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE axmol)
+
+# Set C++ standard
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
