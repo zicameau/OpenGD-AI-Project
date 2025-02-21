@@ -30,22 +30,10 @@ project(OpenGD_Game)
 # Set Axmol root directory
 set(_AX_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/external/axmol")
 
-# Add cmake paths
-list(APPEND CMAKE_MODULE_PATH 
-    "${_AX_ROOT}/cmake/Modules"
-    "${_AX_ROOT}/cmake"
-)
-
-# Include core build configuration
-include(AXBuildHelpers)
-include(AXBuildSet)
-include(AXConfigDefine)
-include(AXConfigDepend)
-
-# Set up Axmol engine
-set(AX_PROJ_NAME ${PROJECT_NAME})
-set(AX_PROJ_RUNTIME_NAME ${PROJECT_NAME})
-set(AX_ROOT ${_AX_ROOT})
+# Disable tests and demos
+set(AX_BUILD_TESTS OFF CACHE BOOL "Build cpp-tests" FORCE)
+set(AX_BUILD_UNIT_TESTS OFF CACHE BOOL "Build unit-tests" FORCE)
+set(AX_BUILD_SAMPLES OFF CACHE BOOL "Build samples" FORCE)
 
 # Configure Axmol build options
 option(AX_USE_COMPAT_GL "Use OpenGL compatibility profile" OFF)
@@ -57,9 +45,18 @@ option(AX_USE_DRAGONBONES "Use DragonBones" OFF)
 option(AX_USE_LIVE2D "Use Live2D" OFF)
 option(AX_USE_AUDIO "Enable audio support" ON)
 
-# Add axmol subdirectory but skip tests
-set(BUILD_TESTS OFF CACHE BOOL "Build tests" FORCE)
-add_subdirectory(external/axmol)
+# Add cmake paths
+list(APPEND CMAKE_MODULE_PATH 
+    "${_AX_ROOT}/cmake/Modules"
+    "${_AX_ROOT}/cmake"
+)
+
+# Include core build configuration
+include(AXBuildHelpers)
+include(AXBuildSet)
+
+# Add Axmol as subdirectory
+add_subdirectory(${_AX_ROOT})
 
 # Add your project's source files
 add_executable(${PROJECT_NAME} src/main.cpp)
