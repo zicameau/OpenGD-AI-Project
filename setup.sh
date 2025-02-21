@@ -88,10 +88,11 @@ create_directories() {
     mkdir -p external/axmol/cmake/Modules
     mkdir -p external/axmol/1k
     mkdir -p external/axmol/3rdparty/zlib
+    mkdir -p external/axmol/3rdparty/chipmunk/src
     
-    # Create fmt config directories with full path
+    # Create fmt config directories with full path and permissions
     mkdir -p "${PWD}/build/3rdparty/fmt"
-    chmod 777 "${PWD}/build/3rdparty/fmt"
+    chmod -R 777 "${PWD}/build/3rdparty"
 }
 
 # Function to apply custom files
@@ -109,6 +110,10 @@ apply_custom_files() {
     cp patches/axmol/AXOptionHelpers.cmake external/axmol/cmake/Modules/AXOptionHelpers.cmake
     cp patches/axmol/fetch.cmake external/axmol/1k/fetch.cmake
     cp patches/axmol/zlib.cmake external/axmol/3rdparty/zlib/CMakeLists.txt
+    cp patches/axmol/chipmunk.cmake external/axmol/3rdparty/chipmunk/src/CMakeLists.txt
+    
+    # Remove problematic demo directory
+    rm -rf external/axmol/3rdparty/chipmunk/demo
 }
 
 # Function to setup Axmol engine
