@@ -36,7 +36,9 @@ install_dependencies() {
             libevdev2 \
             libpulse0 \
             libvlc5 \
-            libgtk-3-dev
+            libgtk-3-dev \
+            gcc-10 \
+            g++-10
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
@@ -141,6 +143,9 @@ setup_axmol() {
 setup_build() {
     print_status "Setting up build directory"
     mkdir -p build
+    cd build || exit 1
+    CC=gcc-10 CXX=g++-10 cmake -DCMAKE_BUILD_TYPE=Debug ..
+    cd ..
 }
 
 # Function to install latest CMake
