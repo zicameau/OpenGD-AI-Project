@@ -51,19 +51,27 @@ setup_axslcc() {
     # Create tools directory if it doesn't exist
     mkdir -p external/axmol/tools/axslcc
     
-    # Download and extract axslcc
+    # Download axslcc
     print_status "Downloading axslcc"
     wget -O axslcc.tar.gz "https://github.com/axmolengine/axslcc/releases/download/v1.9.6/axslcc-1.9.6-linux.tar.gz"
     
-    # Extract to the tools directory
+    # Extract to a temporary directory and check contents
     print_status "Extracting axslcc"
-    tar -xzf axslcc.tar.gz -C external/axmol/tools/axslcc --strip-components=1
+    mkdir -p temp_axslcc
+    tar -xzf axslcc.tar.gz -C temp_axslcc
+    
+    # List contents to debug
+    print_status "Checking axslcc contents"
+    ls -la temp_axslcc
+    
+    # Copy contents to the correct location
+    cp -r temp_axslcc/* external/axmol/tools/axslcc/
     
     # Cleanup
-    rm axslcc.tar.gz
+    rm -rf temp_axslcc axslcc.tar.gz
     
-    # Make axslcc executable
-    chmod +x external/axmol/tools/axslcc/axslcc
+    # Find and make the axslcc binary executable
+    find external/axmol/tools/axslcc -name "axslcc" -type f -exec chmod +x {} \;
 }
 
 # Function to setup Axmol engine
