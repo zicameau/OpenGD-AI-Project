@@ -2,11 +2,8 @@
 
 import os
 import sys
-import yaml
 import subprocess
-import platform
-import shutil
-from pathlib import Path
+import yaml
 from analyze_cmake import CMakeAnalyzer, update_project_yml
 
 class ProjectSetup:
@@ -48,7 +45,7 @@ class ProjectSetup:
             self.run_command(['sudo', 'apt-get', 'update'])
             
             # Install build and runtime dependencies
-            deps = config['dependencies'].get('ubuntu', {})
+            deps = config.get('dependencies', {}).get('ubuntu', {})
             if deps:
                 build_deps = deps.get('build', [])
                 runtime_deps = deps.get('runtime', [])
