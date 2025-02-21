@@ -266,4 +266,33 @@ rm -rf build/*
 
 echo "Setup complete!"
 echo "AX_ROOT has been set to: $AX_ROOT"
-echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .." 
+echo "You can now run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug .."
+
+echo "===> Setting up cp wrapper for shader compilation"
+# Create wrapper directory in the project
+mkdir -p tools/bin
+
+# Create the cp wrapper script
+cat > tools/bin/cp-wrapper << 'EOL'
+#!/bin/bash
+# Remove --silent from arguments if present
+args=()
+for arg in "$@"; do
+    if [ "$arg" != "--silent" ]; then
+        args+=("$arg")
+    fi
+done
+
+# Execute real cp command with filtered arguments
+/bin/cp "${args[@]}"
+EOL
+
+# Make it executable
+chmod +x tools/bin/cp-wrapper
+
+# Add the wrapper to PATH when building
+export PATH="$PWD/tools/bin:$PATH"
+ln -sf cp-wrapper tools/bin/cp
+
+echo "===> Setting up build directory"
+# ... rest of existing setup code ... 

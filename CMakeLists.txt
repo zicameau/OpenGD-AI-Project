@@ -51,6 +51,9 @@ list(APPEND CMAKE_MODULE_PATH
     "${_AX_ROOT}/cmake"
 )
 
+# Add our cmake modules directory to the module path
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules")
+
 # Include core build configuration
 include(AXBuildHelpers)
 include(AXBuildSet)
@@ -105,3 +108,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
+
+# Add cp wrapper to PATH for shader compilation
+if(UNIX AND NOT APPLE)
+    set(ENV{PATH} "${CMAKE_SOURCE_DIR}/tools/bin:$ENV{PATH}")
+endif()
