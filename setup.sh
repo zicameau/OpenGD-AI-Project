@@ -276,14 +276,32 @@ echo "Setup complete!"
 echo "You can now run: make -j\$(nproc)"
 
 echo "===> Patching axmol CMake files for shader compilation"
-AXMOL_CMAKE_DIR="external/axmol/cmake/Modules"
-AXSLCC_CMAKE="$AXMOL_CMAKE_DIR/AXSLCC.cmake"
 
-# Backup original file
-cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
+# Search for AXSLCC.cmake in multiple possible locations
+AXSLCC_PATHS=(
+    "external/axmol/cmake/Modules/AXSLCC.cmake"
+    "external/axmol/cmake/AXSLCC.cmake"
+    "external/axslcc/cmake/AXSLCC.cmake"
+)
 
-# Replace the cp --silent command in the original file
-sed -i 's/cp --silent/cp -f/g' "$AXSLCC_CMAKE"
+AXSLCC_CMAKE=""
+for path in "${AXSLCC_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        AXSLCC_CMAKE="$path"
+        break
+    fi
+done
+
+if [ -z "$AXSLCC_CMAKE" ]; then
+    echo "Error: Could not find AXSLCC.cmake"
+    # Continue anyway since the file might be created during CMake configuration
+else
+    # Backup original file
+    cp "$AXSLCC_CMAKE" "${AXSLCC_CMAKE}.bak"
+
+    # Replace the cp --silent command in the original file
+    sed -i 's/cp --silent/cp -f/g' "$AXSLCC_CMAKE"
+fi
 
 # Configure CMake
 cd build
