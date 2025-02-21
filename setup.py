@@ -9,6 +9,17 @@ import shutil
 from pathlib import Path
 from analyze_cmake import CMakeAnalyzer, update_project_yml
 
+def run_command(command, cwd=None):
+    """Run a command and return its output"""
+    try:
+        result = subprocess.run(command, cwd=cwd, check=True, 
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              text=True, shell=isinstance(command, str))
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Error during setup: {e}")
+        sys.exit(1)
+
 class ProjectSetup:
     def __init__(self):
         self.config = self.load_config()
@@ -31,10 +42,6 @@ class ProjectSetup:
             except FileNotFoundError:
                 pass
         return system
-    
-    def run_command(self, cmd, check=True, cwd=None):
-        print(f"Running: {' '.join(cmd)}")
-        subprocess.run(cmd, check=check, cwd=cwd)
     
     def install_dependencies(self):
         if self.platform not in self.config['dependencies']:
