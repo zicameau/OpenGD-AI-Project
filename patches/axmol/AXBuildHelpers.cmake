@@ -74,17 +74,24 @@ endfunction()
 
 # Add dependencies for axmol targets
 function(use_ax_depend target)
+    message(STATUS "DEBUG: use_ax_depend called for target: ${target}")
+    
     if(NOT TARGET ${target})
         message(FATAL_ERROR "use_ax_depend: ${target} is not a valid target")
     endif()
 
     if(UNIX AND NOT APPLE AND NOT ANDROID)
         find_package(X11 REQUIRED)
-        target_link_libraries(${target} 
-            PRIVATE 
-                ${X11_LIBRARIES}
-                ${CMAKE_DL_LIBS}
-        )
+        message(STATUS "DEBUG: X11_LIBRARIES = ${X11_LIBRARIES}")
+        message(STATUS "DEBUG: CMAKE_DL_LIBS = ${CMAKE_DL_LIBS}")
+        
+        # Try using the same style as the original call
+        if(X11_FOUND)
+            target_link_libraries(${target} ${X11_LIBRARIES})
+        endif()
+        if(CMAKE_DL_LIBS)
+            target_link_libraries(${target} ${CMAKE_DL_LIBS})
+        endif()
     endif()
 endfunction()
 
