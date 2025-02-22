@@ -63,13 +63,40 @@ if(POLICY CMP0175)
     cmake_policy(SET CMP0175 NEW)
 endif()
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
-# Enable languages first
-enable_language(C)
-enable_language(CXX)
+# Initialize project first
+project(OpenGD_Game VERSION 1.0.0 LANGUAGES C CXX)
 
-project(OpenGD_Game)
+# Set compiler settings
+set(CMAKE_C_COMPILER /usr/bin/clang-14)
+set(CMAKE_CXX_COMPILER /usr/bin/clang++-14)
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
+# Add debug output for X11 configuration
+message(STATUS "Configuring X11 support...")
+message(STATUS "System paths:")
+message(STATUS "  Include: ${CMAKE_SYSTEM_INCLUDE_PATH}")
+message(STATUS "  Library: ${CMAKE_SYSTEM_LIBRARY_PATH}")
+
+# Configure X11 with pkg-config first
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PC_X11 REQUIRED x11)
+
+# Set X11 paths using pkg-config results
+set(X11_X11_INCLUDE_PATH ${PC_X11_INCLUDE_DIRS})
+set(X11_X11_LIB ${PC_X11_LIBRARIES})
+
+# Additional X11 configuration
+set(X11_FIND_REQUIRED TRUE)
+find_package(X11 REQUIRED)
+
+if(NOT X11_FOUND)
+    message(FATAL_ERROR "X11 not found. Paths tried:\n"
+            "  Include: ${X11_X11_INCLUDE_PATH}\n"
+            "  Library: ${X11_X11_LIB}")
+endif()
 
 # Set C++20 globally
 set(CMAKE_CXX_STANDARD 20)
@@ -180,8 +207,6 @@ message(STATUS "Compiler features: ${CMAKE_CXX_COMPILE_FEATURES}")
 if(UNIX AND NOT APPLE)
     set(ENV{PATH} "${CMAKE_SOURCE_DIR}/tools/bin:$ENV{PATH}")
 endif()
-
-# Add before find_package(X11)
 
 # Debug X11 search
 message(STATUS "Starting X11 configuration...")

@@ -74,24 +74,29 @@ endfunction()
 
 # Add dependencies for axmol targets
 function(use_ax_depend target)
-    message(STATUS "DEBUG: use_ax_depend called for target: ${target}")
+    message(STATUS "Configuring dependencies for target: ${target}")
     
     if(NOT TARGET ${target})
         message(FATAL_ERROR "use_ax_depend: ${target} is not a valid target")
     endif()
 
     if(UNIX AND NOT APPLE AND NOT ANDROID)
-        find_package(X11 REQUIRED)
-        message(STATUS "DEBUG: X11_LIBRARIES = ${X11_LIBRARIES}")
-        message(STATUS "DEBUG: CMAKE_DL_LIBS = ${CMAKE_DL_LIBS}")
+        # Use pkg-config to find X11 first
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(PC_X11 REQUIRED x11)
         
-        # Try using the same style as the original call
-        if(X11_FOUND)
-            target_link_libraries(${target} ${X11_LIBRARIES})
-        endif()
-        if(CMAKE_DL_LIBS)
-            target_link_libraries(${target} ${CMAKE_DL_LIBS})
-        endif()
+        # Set X11 paths from pkg-config
+        set(X11_X11_INCLUDE_PATH ${PC_X11_INCLUDE_DIRS} PARENT_SCOPE)
+        set(X11_X11_LIB ${PC_X11_LIBRARIES} PARENT_SCOPE)
+        
+        find_package(X11 REQUIRED)
+        
+        message(STATUS "X11 Configuration for ${target}:")
+        message(STATUS "  Include Path: ${X11_X11_INCLUDE_PATH}")
+        message(STATUS "  Libraries: ${X11_LIBRARIES}")
+        
+        target_include_directories(${target} PRIVATE ${X11_X11_INCLUDE_PATH})
+        target_link_libraries(${target} PRIVATE ${X11_LIBRARIES})
     endif()
 endfunction()
 
