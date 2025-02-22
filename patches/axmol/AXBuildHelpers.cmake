@@ -81,21 +81,18 @@ function(use_ax_depend target)
     endif()
 
     if(UNIX AND NOT APPLE AND NOT ANDROID)
-        # Use pkg-config to find X11 first
+        # Use pkg-config to find X11
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(PC_X11 REQUIRED x11)
-        
-        # Set X11 paths from pkg-config
-        set(X11_X11_INCLUDE_PATH ${PC_X11_INCLUDE_DIRS} PARENT_SCOPE)
-        set(X11_X11_LIB ${PC_X11_LIBRARIES} PARENT_SCOPE)
         
         find_package(X11 REQUIRED)
         
         message(STATUS "X11 Configuration for ${target}:")
-        message(STATUS "  Include Path: ${X11_X11_INCLUDE_PATH}")
+        message(STATUS "  Include Path: ${X11_INCLUDE_DIRS}")
         message(STATUS "  Libraries: ${X11_LIBRARIES}")
         
-        target_include_directories(${target} PRIVATE ${X11_X11_INCLUDE_PATH})
+        # Use consistent PRIVATE keyword style
+        target_include_directories(${target} PRIVATE ${X11_INCLUDE_DIRS})
         target_link_libraries(${target} PRIVATE ${X11_LIBRARIES})
     endif()
 endfunction()

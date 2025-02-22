@@ -74,13 +74,7 @@ set(CMAKE_CXX_COMPILER /usr/bin/clang++-14)
 set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 
-# Add debug output for X11 configuration
-message(STATUS "Configuring X11 support...")
-message(STATUS "System paths:")
-message(STATUS "  Include: ${CMAKE_SYSTEM_INCLUDE_PATH}")
-message(STATUS "  Library: ${CMAKE_SYSTEM_LIBRARY_PATH}")
-
-# Configure X11 with pkg-config first
+# Configure X11 with pkg-config
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PC_X11 REQUIRED x11)
 
