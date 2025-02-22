@@ -90,6 +90,25 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_link_options(-stdlib=libc++)
 endif()
 
+# Add after the compiler selection but before project()
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Force LLVM/Clang toolchain
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -nostdinc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+    
+    # Add LLVM include paths
+    include_directories(SYSTEM
+        /usr/lib/llvm-14/include/c++/v1
+        /usr/include/x86_64-linux-gnu
+    )
+    
+    # Add LLVM library paths
+    link_directories(
+        /usr/lib/llvm-14/lib
+        /usr/lib/x86_64-linux-gnu
+    )
+endif()
+
 # Configure X11 with pkg-config
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PC_X11 REQUIRED x11)

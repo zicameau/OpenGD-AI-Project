@@ -12,6 +12,11 @@ print_status() {
 install_dependencies() {
     if [ -f /etc/debian_version ]; then
         print_status "Detected Debian/Ubuntu system"
+        
+        # Add LLVM repository for latest Clang
+        print_status "Adding LLVM repository"
+        wget -O - https://apt.llvm.org/llvm.sh | sudo bash -s -- 14
+        
         sudo apt-get update
         sudo apt-get install -y \
             build-essential \
