@@ -180,3 +180,48 @@ message(STATUS "Compiler features: ${CMAKE_CXX_COMPILE_FEATURES}")
 if(UNIX AND NOT APPLE)
     set(ENV{PATH} "${CMAKE_SOURCE_DIR}/tools/bin:$ENV{PATH}")
 endif()
+
+# Add before find_package(X11)
+
+# Debug X11 search
+message(STATUS "Starting X11 configuration...")
+
+# Explicitly set X11 paths
+set(X11_INCLUDE_PATH "/usr/include/X11")
+set(X11_LIB_PATH "/usr/lib/x86_64-linux-gnu")
+
+# Set explicit paths for FindX11.cmake
+set(X11_X11_INCLUDE_PATH "${X11_INCLUDE_PATH}")
+set(X11_X11_LIB "${X11_LIB_PATH}/libX11.so")
+set(X11_Xext_INCLUDE_PATH "${X11_INCLUDE_PATH}")
+set(X11_Xext_LIB "${X11_LIB_PATH}/libXext.so")
+
+# Additional hints for FindX11
+set(CMAKE_PREFIX_PATH 
+    ${CMAKE_PREFIX_PATH}
+    "/usr"
+    "/usr/local"
+)
+
+# Debug output
+message(STATUS "X11 Configuration:")
+message(STATUS "  X11_INCLUDE_PATH: ${X11_INCLUDE_PATH}")
+message(STATUS "  X11_LIB_PATH: ${X11_LIB_PATH}")
+message(STATUS "  X11_X11_INCLUDE_PATH: ${X11_X11_INCLUDE_PATH}")
+message(STATUS "  X11_X11_LIB: ${X11_X11_LIB}")
+
+# Force pkg-config to help find X11
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PC_X11 REQUIRED x11)
+
+# Now try to find X11 with our explicit configuration
+find_package(X11 REQUIRED)
+
+# Verify X11 was found
+if(X11_FOUND)
+    message(STATUS "X11 found successfully:")
+    message(STATUS "  X11_INCLUDE_DIRS: ${X11_INCLUDE_DIRS}")
+    message(STATUS "  X11_LIBRARIES: ${X11_LIBRARIES}")
+else()
+    message(FATAL_ERROR "X11 not found despite explicit configuration!")
+endif()
