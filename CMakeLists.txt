@@ -68,11 +68,27 @@ cmake_minimum_required(VERSION 3.20)
 # Initialize project first
 project(OpenGD_Game VERSION 1.0.0 LANGUAGES C CXX)
 
-# Set compiler settings
-set(CMAKE_C_COMPILER /usr/bin/clang-14)
-set(CMAKE_CXX_COMPILER /usr/bin/clang++-14)
-set(CMAKE_C_COMPILER_FORCED TRUE)
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
+# Add after project() declaration but before other compiler settings
+message(STATUS "C++ Compiler details:")
+message(STATUS "  Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "  Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "  Compiler path: ${CMAKE_CXX_COMPILER}")
+message(STATUS "  Compiler flags: ${CMAKE_CXX_FLAGS}")
+message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
+
+# Force compiler settings before any targets
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+    
+    # Force these settings to propagate to all targets
+    add_compile_options(-std=c++20 -stdlib=libc++)
+    add_link_options(-stdlib=libc++)
+endif()
 
 # Configure X11 with pkg-config
 find_package(PkgConfig REQUIRED)
