@@ -60,9 +60,23 @@ if(POLICY CMP0175)
     cmake_policy(SET CMP0175 NEW)
 endif()
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16)
+
+# Enable languages first
+enable_language(C)
+enable_language(CXX)
 
 project(OpenGD_Game)
+
+# Set C++20 globally
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+endif()
 
 # Add these near the top, after project() declaration
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
