@@ -1,3 +1,8 @@
+# Add policy at the top of the file
+if(POLICY CMP0175)
+    cmake_policy(SET CMP0175 NEW)
+endif()
+
 # Function to find shader files
 function(ax_find_shaders out_var)
     file(GLOB_RECURSE shader_files
@@ -49,12 +54,11 @@ function(ax_target_compile_shaders target)
             set(output_dir "${CMAKE_BINARY_DIR}/runtime/axslc")
             file(MAKE_DIRECTORY ${output_dir})
             
-            # Add custom command
+            # Modified custom command to remove DEPENDS when using TARGET
             add_custom_command(
                 TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     ${shader} ${output_dir}/${shader_name}
-                DEPENDS ${shader}
                 COMMENT "Copying shader ${shader_name}"
             )
         endforeach()

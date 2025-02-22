@@ -81,9 +81,9 @@ function(use_ax_depend target)
     endif()
 
     if(UNIX AND NOT APPLE AND NOT ANDROID)
-        # Use pkg-config to find X11
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(PC_X11 REQUIRED x11)
+        # Debug output for link investigation
+        get_target_property(existing_links ${target} LINK_LIBRARIES)
+        message(STATUS "Existing link libraries for ${target}: ${existing_links}")
         
         find_package(X11 REQUIRED)
         
@@ -91,9 +91,16 @@ function(use_ax_depend target)
         message(STATUS "  Include Path: ${X11_INCLUDE_DIRS}")
         message(STATUS "  Libraries: ${X11_LIBRARIES}")
         
-        # Use consistent PRIVATE keyword style
+        # Use consistent linking style
+        if(existing_links)
+            # If target already has plain-style links, use plain style
+            target_link_libraries(${target} ${X11_LIBRARIES})
+        else()
+            # Otherwise use keyword style
+            target_link_libraries(${target} PRIVATE ${X11_LIBRARIES})
+        endif()
+        
         target_include_directories(${target} PRIVATE ${X11_INCLUDE_DIRS})
-        target_link_libraries(${target} PRIVATE ${X11_LIBRARIES})
     endif()
 endfunction()
 
