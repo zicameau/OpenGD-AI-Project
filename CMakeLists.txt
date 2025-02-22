@@ -41,17 +41,20 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-stdlib=libc++)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 
-# Explicitly set X11 paths
-set(X11_INCLUDE_DIR "/usr/include/X11")
-set(X11_LIBRARIES "/usr/lib/x86_64-linux-gnu")
-set(X11_X11_LIB "/usr/lib/x86_64-linux-gnu/libX11.so")
+# Set X11 paths explicitly
 set(X11_X11_INCLUDE_PATH "/usr/include/X11")
+set(X11_X11_LIB "/usr/lib/x86_64-linux-gnu/libX11.so")
 
-# Add X11 to the module path
-list(APPEND CMAKE_MODULE_PATH "/usr/lib/x86_64-linux-gnu/cmake")
+# Additional X11 hints
+set(X11_ROOT_DIR "/usr")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/lib/x86_64-linux-gnu")
 
-# Force pkg-config to look in the right place
-set(ENV{PKG_CONFIG_PATH} "/usr/lib/x86_64-linux-gnu/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+# Make sure pkg-config can find X11
+set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/lib/x86_64-linux-gnu/pkgconfig")
+
+# Debug output
+message(STATUS "X11_X11_INCLUDE_PATH: ${X11_X11_INCLUDE_PATH}")
+message(STATUS "X11_X11_LIB: ${X11_X11_LIB}")
 
 # Enable language support
 enable_language(CXX)
