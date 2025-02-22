@@ -69,7 +69,12 @@ install_dependencies() {
             x11proto-dev \
             libglu1-mesa-dev \
             x11-utils \
-            x11-common
+            x11-common \
+            libxcb-dev \
+            libxcb-render0-dev \
+            libxcb-dri2-0-dev \
+            libxcb-dri3-dev \
+            libxcb-present-dev
     else
         print_status "Unsupported system. Please install dependencies manually."
         exit 1
