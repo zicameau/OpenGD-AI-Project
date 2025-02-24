@@ -205,7 +205,7 @@ void ResourcesLoadingLayer::handleLinux() {
 	GameToolbox::log("Linux resource handler started");
 	
 	auto label = Label::create();
-	label->setString("Geometry Dash Resources not found!\nSearching common Linux paths...");
+	label->setString("Geometry Dash Resources not found!\nSearching for resources...");
 	label->setSystemFontSize(20);
 	label->setPosition(_posMiddle);
 	addChild(label);
@@ -216,35 +216,20 @@ void ResourcesLoadingLayer::handleLinux() {
 		GameToolbox::log("  {}", path);
 	}
 
-	// Common Steam installation paths on Linux
-	std::string username = getenv("USER") ? getenv("USER") : "";
-	std::vector<std::string> searchPaths = {
-		"/home/" + username + "/.steam/steam/steamapps/common/Geometry Dash/",
-		"/home/" + username + "/.local/share/Steam/steamapps/common/Geometry Dash/"
-	};
-
-	// Log resource check
-	for (const auto& file : {"game_bg_01_001-hd.png", "GJ_LaunchSheet-hd.png", "GJ_GameSheet03-uhd.png"}) {
-		if (!_fu->isFileExist(file)) {
-			GameToolbox::log("Missing required resource: {}", file);
-		}
+	// Check configured path
+	std::string resourcePath = std::string(Config::RESOURCES_PATH) + "/Resources";
+	GameToolbox::log("Checking configured path: {}", resourcePath);
+	
+	if (_fu->isDirectoryExist(resourcePath)) {
+		GameToolbox::log("Found valid resource path: {}", resourcePath);
+		_fu->addSearchPath(resourcePath, true);
+		_gm->set<std::string>("resources_path", resourcePath);
+		_gm->save();
+		loadLoadingLayer();
+		return;
 	}
 
-	for (const auto& path : searchPaths) {
-		std::string resourcePath = path + "Resources/";
-		GameToolbox::log("Checking path: {}", resourcePath);
-		
-		if (_fu->isDirectoryExist(resourcePath)) {
-			GameToolbox::log("Found valid resource path: {}", resourcePath);
-			_fu->addSearchPath(resourcePath, true);
-			_gm->set<std::string>("resources_path", resourcePath);
-			_gm->save();
-			loadLoadingLayer();
-			return;
-		}
-	}
-
-	GameToolbox::log("No valid resource paths found");
-	label->setString("Resources not found.\nPlease specify path manually.");
+	GameToolbox::log("No valid resource path found");
+	label->setString("Resources not found.\nPlease update RESOURCES_PATH in Config.h");
 }
 //#endif
