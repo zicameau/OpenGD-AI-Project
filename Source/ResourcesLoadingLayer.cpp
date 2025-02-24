@@ -221,8 +221,26 @@ void ResourcesLoadingLayer::handleLinux() {
 	std::string resourcePath = std::string(Config::getResourcesPath()) + "/Resources";
 	GameToolbox::log("Checking configured path: {}", resourcePath);
 	
-	if (_fu->isDirectoryExist(resourcePath)) {
-		GameToolbox::log("Found valid resource path: {}", resourcePath);
+	// Validate required files and directories
+	std::vector<std::string> requiredFiles = {
+		"game_bg_01_001-hd.png",
+		"GJ_LaunchSheet-hd.png",
+		"GJ_GameSheet03-uhd.png",
+		"levels/level1.json",  // Add required level files
+		"levels/levelList.json"  // Add required level list file
+	};
+
+	bool hasAllFiles = true;
+	for (const auto& file : requiredFiles) {
+		std::string fullPath = resourcePath + "/" + file;
+		if (!_fu->isFileExist(fullPath)) {
+			GameToolbox::log("Missing required file: {}", fullPath);
+			hasAllFiles = false;
+		}
+	}
+
+	if (_fu->isDirectoryExist(resourcePath) && hasAllFiles) {
+		GameToolbox::log("Found valid resource path with all required files: {}", resourcePath);
 		_fu->addSearchPath(resourcePath, true);
 		_gm->set<std::string>("resources_path", resourcePath);
 		_gm->save();
@@ -230,7 +248,7 @@ void ResourcesLoadingLayer::handleLinux() {
 		return;
 	}
 
-	GameToolbox::log("No valid resource path found");
-	label->setString("Resources not found.\nPlease set OPENGD_RESOURCES environment variable");
+	GameToolbox::log("No valid resource path found or missing required files");
+	label->setString("Resources not found or incomplete.\nPlease check OPENGD_RESOURCES environment variable");
 }
 //#endif

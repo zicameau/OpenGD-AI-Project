@@ -8,11 +8,10 @@
 
 ## Resource Loading
 - [x] Implement Linux resource handler
-  - [x] Add common Steam paths search:
-    - `~/.steam/steam/steamapps/common/Geometry Dash/`
-    - `~/.local/share/Steam/steamapps/common/Geometry Dash/`
+  - [x] Add environment variable configuration (OPENGD_RESOURCES)
+  - [x] Add fallback default path
   - [x] Add user feedback label for resource search status
-  - [ ] Implement manual path specification fallback
+  - [x] Add debug logging for resource paths
 
 ## Build System Improvements
 - [x] Update CMakeLists.txt with Linux dependencies
@@ -39,12 +38,11 @@
 - [x] Empty Linux resource handler (Fixed)
 - [x] Incorrect display size calculation (Fixed)
 - [x] Silent resource loading failures (Fixed with debug logs)
-- [ ] No user feedback for resource loading status
+- [x] No user feedback for resource loading status (Fixed)
 
 ## Future Improvements
-- [ ] Add configuration file for custom resource paths
+- [x] Add configuration for resource paths
 - [ ] Implement resource validation checks
 - [ ] Add detailed error reporting
 - [ ] Create Linux-specific installation guide
-- [ ] Add dependency installation script to build process
-- [ ] Implement automatic resource path detection from Steam library 
+- [ ] Add dependency installation script to build process 
