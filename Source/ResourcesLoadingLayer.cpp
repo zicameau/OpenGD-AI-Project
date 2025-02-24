@@ -201,5 +201,50 @@ void ResourcesLoadingLayer::handleMac() {}
 //#endif
 
 //#if (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
-void ResourcesLoadingLayer::handleLinux() {}
+void ResourcesLoadingLayer::handleLinux() {
+	GameToolbox::log("Linux resource handler started");
+	
+	auto label = Label::create();
+	label->setString("Geometry Dash Resources not found!\nSearching common Linux paths...");
+	label->setSystemFontSize(20);
+	label->setPosition(_posMiddle);
+	addChild(label);
+
+	// Log current search paths
+	GameToolbox::log("Current search paths:");
+	for (const auto& path : _fu->getSearchPaths()) {
+		GameToolbox::log("  {}", path);
+	}
+
+	// Common Steam installation paths on Linux
+	std::string username = getenv("USER") ? getenv("USER") : "";
+	std::vector<std::string> searchPaths = {
+		"/home/" + username + "/.steam/steam/steamapps/common/Geometry Dash/",
+		"/home/" + username + "/.local/share/Steam/steamapps/common/Geometry Dash/"
+	};
+
+	// Log resource check
+	for (const auto& file : {"game_bg_01_001-hd.png", "GJ_LaunchSheet-hd.png", "GJ_GameSheet03-uhd.png"}) {
+		if (!_fu->isFileExist(file)) {
+			GameToolbox::log("Missing required resource: {}", file);
+		}
+	}
+
+	for (const auto& path : searchPaths) {
+		std::string resourcePath = path + "Resources/";
+		GameToolbox::log("Checking path: {}", resourcePath);
+		
+		if (_fu->isDirectoryExist(resourcePath)) {
+			GameToolbox::log("Found valid resource path: {}", resourcePath);
+			_fu->addSearchPath(resourcePath, true);
+			_gm->set<std::string>("resources_path", resourcePath);
+			_gm->save();
+			loadLoadingLayer();
+			return;
+		}
+	}
+
+	GameToolbox::log("No valid resource paths found");
+	label->setString("Resources not found.\nPlease specify path manually.");
+}
 //#endif
