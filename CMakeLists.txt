@@ -129,10 +129,36 @@ if(ANDROID)
          proj.android/app/jni/main.cpp
          )
 elseif(LINUX)
+    # Add Linux-specific configuration
+    find_package(X11 REQUIRED)
+    find_package(OpenGL REQUIRED)
+    find_package(GLFW3 REQUIRED)
+    
+    # Add Linux source files
     list(APPEND GAME_SOURCE
          proj.linux/main.cpp
          )
     list(APPEND GAME_SOURCE ${common_content_files})
+    
+    # Add Linux-specific include directories
+    target_include_directories(${APP_NAME} PRIVATE
+        ${X11_INCLUDE_DIR}
+        ${OPENGL_INCLUDE_DIR}
+        ${GLFW3_INCLUDE_DIR}
+    )
+    
+    # Link Linux-specific libraries
+    target_link_libraries(${APP_NAME} PRIVATE
+        ${X11_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        glfw
+    )
+    
+    # Add Linux-specific compile definitions
+    target_compile_definitions(${APP_NAME} PRIVATE
+        AX_PLATFORM_LINUX
+        GL_GLEXT_PROTOTYPES
+    )
 elseif(WASM)
     list(APPEND GAME_SOURCE
          proj.wasm/main.cpp
