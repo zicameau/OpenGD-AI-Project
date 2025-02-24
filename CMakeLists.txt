@@ -139,25 +139,6 @@ elseif(LINUX)
          proj.linux/main.cpp
          )
     list(APPEND GAME_SOURCE ${common_content_files})
-    
-    # Add Linux-specific include directories
-    target_include_directories(${APP_NAME} PRIVATE
-        ${X11_INCLUDE_DIR}
-        ${OPENGL_INCLUDE_DIR}
-    )
-    
-    # Link Linux-specific libraries
-    target_link_libraries(${APP_NAME} PRIVATE
-        ${X11_LIBRARIES}
-        ${OPENGL_LIBRARIES}
-        glfw
-    )
-    
-    # Add Linux-specific compile definitions
-    target_compile_definitions(${APP_NAME} PRIVATE
-        AX_PLATFORM_LINUX
-        GL_GLEXT_PROTOTYPES
-    )
 elseif(WASM)
     list(APPEND GAME_SOURCE
          proj.wasm/main.cpp
@@ -300,3 +281,25 @@ find_package(OpenSSL REQUIRED)
 
 # Explicitly link OpenSSL libraries to your final executable
 target_link_libraries(OpenGD yasio OpenSSL::SSL OpenSSL::Crypto)
+
+# Move these after the target is created
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Add Linux-specific include directories
+    target_include_directories(${APP_NAME} PRIVATE
+        ${X11_INCLUDE_DIR}
+        ${OPENGL_INCLUDE_DIR}
+    )
+    
+    # Link Linux-specific libraries
+    target_link_libraries(${APP_NAME} PRIVATE
+        ${X11_LIBRARIES}
+        ${OPENGL_LIBRARIES}
+        glfw
+    )
+    
+    # Add Linux-specific compile definitions
+    target_compile_definitions(${APP_NAME} PRIVATE
+        AX_PLATFORM_LINUX
+        GL_GLEXT_PROTOTYPES
+    )
+endif()
