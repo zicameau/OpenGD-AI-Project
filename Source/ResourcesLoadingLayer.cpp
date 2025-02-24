@@ -19,6 +19,7 @@
 #include "GameManager.h"
 #include "ResourcesLoadingLayer.h"
 #include "LoadingLayer.h"
+#include "Config.h"
 
 #include <2d/Scene.h>
 #include <2d/Label.h>
@@ -217,7 +218,7 @@ void ResourcesLoadingLayer::handleLinux() {
 	}
 
 	// Check configured path
-	std::string resourcePath = std::string(Config::RESOURCES_PATH) + "/Resources";
+	std::string resourcePath = std::string(Config::getResourcesPath()) + "/Resources";
 	GameToolbox::log("Checking configured path: {}", resourcePath);
 	
 	if (_fu->isDirectoryExist(resourcePath)) {
@@ -230,6 +231,6 @@ void ResourcesLoadingLayer::handleLinux() {
 	}
 
 	GameToolbox::log("No valid resource path found");
-	label->setString("Resources not found.\nPlease update RESOURCES_PATH in Config.h");
+	label->setString("Resources not found.\nPlease set OPENGD_RESOURCES environment variable");
 }
 //#endif
