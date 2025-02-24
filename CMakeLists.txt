@@ -270,3 +270,8 @@ if (_AX_USE_PREBUILT) # support windows and linux
 endif()
 
 ax_setup_app_props(${APP_NAME})
+
+find_package(OpenSSL REQUIRED)
+
+# Explicitly link OpenSSL libraries to your final executable
+target_link_libraries(OpenGD yasio OpenSSL::SSL OpenSSL::Crypto)
