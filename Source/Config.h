@@ -1,6 +1,12 @@
 #pragma once
+#include <cstdlib>
+#include <string>
 
 namespace Config {
-    // Change this path to your Geometry Dash directory
-    constexpr const char* RESOURCES_PATH = "/path/to/geometrydash";
+    inline const char* getResourcesPath() {
+        const char* envPath = std::getenv("OPENGD_RESOURCES");
+        return envPath ? envPath : "/path/to/geometrydash";  // fallback path if env var not set
+    }
+
+    // Other configuration variables can go here
 } 
