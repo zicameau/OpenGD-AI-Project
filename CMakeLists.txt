@@ -283,21 +283,18 @@ find_package(OpenSSL REQUIRED)
 target_link_libraries(OpenGD yasio OpenSSL::SSL OpenSSL::Crypto)
 
 # Move these after the target is created
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    # Add Linux-specific include directories
-    target_include_directories(${APP_NAME} PRIVATE
-        ${X11_INCLUDE_DIR}
-        ${OPENGL_INCLUDE_DIR}
-    )
-    
-    # Link Linux-specific libraries
-    target_link_libraries(${APP_NAME} PRIVATE
+if(LINUX)
+    target_link_libraries(${APP_NAME} 
         ${X11_LIBRARIES}
         ${OPENGL_LIBRARIES}
         glfw
     )
     
-    # Add Linux-specific compile definitions
+    target_include_directories(${APP_NAME} PRIVATE
+        ${X11_INCLUDE_DIR}
+        ${OPENGL_INCLUDE_DIR}
+    )
+    
     target_compile_definitions(${APP_NAME} PRIVATE
         AX_PLATFORM_LINUX
         GL_GLEXT_PROTOTYPES
