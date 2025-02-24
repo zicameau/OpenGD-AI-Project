@@ -132,7 +132,7 @@ elseif(LINUX)
     # Add Linux-specific configuration
     find_package(X11 REQUIRED)
     find_package(OpenGL REQUIRED)
-    find_package(GLFW3 REQUIRED)
+    find_package(glfw3 REQUIRED)
     
     # Add Linux source files
     list(APPEND GAME_SOURCE
@@ -144,7 +144,6 @@ elseif(LINUX)
     target_include_directories(${APP_NAME} PRIVATE
         ${X11_INCLUDE_DIR}
         ${OPENGL_INCLUDE_DIR}
-        ${GLFW3_INCLUDE_DIR}
     )
     
     # Link Linux-specific libraries

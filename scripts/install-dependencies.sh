@@ -19,6 +19,7 @@ if command -v apt-get >/dev/null 2>&1; then
         libxi-dev \
         libgl-dev \
         libglu1-mesa-dev \
+        libglfw3 \
         libglfw3-dev \
         libglew-dev \
         pkg-config
