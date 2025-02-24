@@ -12,6 +12,9 @@
   - [x] Add fallback default path
   - [x] Add user feedback label for resource search status
   - [x] Add debug logging for resource paths
+  - [x] Add JSON validation for level data
+  - [x] Add directory structure validation
+  - [x] Improve error messages for missing files
 
 ## Build System Improvements
 - [x] Update CMakeLists.txt with Linux dependencies
@@ -28,21 +31,24 @@
 ## Debug Improvements
 - [x] Add resource loading debug logs
   - [x] Log search paths
-  - [x] Log missing resource files:
-    - `game_bg_01_001-hd.png`
-    - `GJ_LaunchSheet-hd.png`
-    - `GJ_GameSheet03-uhd.png`
+  - [x] Log missing resource files
   - [x] Log display initialization status
+  - [x] Log JSON parsing errors
+  - [x] Log directory structure validation
 
 ## Known Issues
 - [x] Empty Linux resource handler (Fixed)
 - [x] Incorrect display size calculation (Fixed)
 - [x] Silent resource loading failures (Fixed with debug logs)
 - [x] No user feedback for resource loading status (Fixed)
+- [ ] JSON parsing errors for level data
+- [ ] Missing required directory structure
 
 ## Future Improvements
 - [x] Add configuration for resource paths
-- [ ] Implement resource validation checks
+- [x] Implement resource validation checks
 - [ ] Add detailed error reporting
 - [ ] Create Linux-specific installation guide
-- [ ] Add dependency installation script to build process 
+- [ ] Add dependency installation script to build process
+- [ ] Create default level data structure
+- [ ] Add automatic Custom directory creation 

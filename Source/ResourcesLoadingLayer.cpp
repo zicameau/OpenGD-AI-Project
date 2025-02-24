@@ -225,17 +225,57 @@ void ResourcesLoadingLayer::handleLinux() {
 	std::vector<std::string> requiredFiles = {
 		"game_bg_01_001-hd.png",
 		"GJ_LaunchSheet-hd.png",
-		"GJ_GameSheet03-uhd.png",
-		"levels/level1.json",  // Add required level files
-		"levels/levelList.json"  // Add required level list file
+		"GJ_GameSheet03-uhd.png"
+	};
+
+	std::vector<std::string> requiredDirs = {
+		"Custom"
+	};
+
+	std::vector<std::string> requiredJsonFiles = {
+		"Custom/mainLevels.json"
 	};
 
 	bool hasAllFiles = true;
+	
+	// Check required files
 	for (const auto& file : requiredFiles) {
 		std::string fullPath = resourcePath + "/" + file;
 		if (!_fu->isFileExist(fullPath)) {
 			GameToolbox::log("Missing required file: {}", fullPath);
 			hasAllFiles = false;
+		}
+	}
+
+	// Check required directories
+	for (const auto& dir : requiredDirs) {
+		std::string fullPath = resourcePath + "/" + dir;
+		if (!_fu->isDirectoryExist(fullPath)) {
+			GameToolbox::log("Missing required directory: {}", fullPath);
+			hasAllFiles = false;
+		}
+	}
+
+	// Check and validate JSON files
+	for (const auto& jsonFile : requiredJsonFiles) {
+		std::string fullPath = resourcePath + "/" + jsonFile;
+		if (!_fu->isFileExist(fullPath)) {
+			GameToolbox::log("Missing required JSON file: {}", fullPath);
+			hasAllFiles = false;
+		} else {
+			// Validate JSON content
+			try {
+				std::string content = _fu->getStringFromFile(fullPath);
+				if (content.empty()) {
+					GameToolbox::log("Empty JSON file: {}", fullPath);
+					hasAllFiles = false;
+				} else {
+					nlohmann::json::parse(content);  // Validate JSON format
+				}
+			} catch (const std::exception& e) {
+				GameToolbox::log("Invalid JSON file {}: {}", fullPath, e.what());
+				hasAllFiles = false;
+			}
 		}
 	}
 
@@ -249,6 +289,6 @@ void ResourcesLoadingLayer::handleLinux() {
 	}
 
 	GameToolbox::log("No valid resource path found or missing required files");
-	label->setString("Resources not found or incomplete.\nPlease check OPENGD_RESOURCES environment variable");
+	label->setString("Resources not found or incomplete.\nPlease check OPENGD_RESOURCES environment variable\nand ensure Custom/mainLevels.json exists and is valid");
 }
 //#endif
