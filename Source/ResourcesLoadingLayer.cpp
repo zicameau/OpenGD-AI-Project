@@ -20,6 +20,9 @@
 #include "ResourcesLoadingLayer.h"
 #include "LoadingLayer.h"
 #include "Config.h"
+#include "external/json.hpp"
+#include "GameToolbox/log.h"
+#include "GameToolbox/getTextureString.h"
 
 #include <2d/Scene.h>
 #include <2d/Label.h>
@@ -27,7 +30,6 @@
 #include <2d/ActionInstant.h>
 #include <platform/FileUtils.h>
 #include <base/Director.h>
-#include "GameToolbox/log.h"
 
 USING_NS_AX;
 
