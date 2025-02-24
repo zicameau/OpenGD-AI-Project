@@ -136,10 +136,18 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
-	int dispX;
-	int dispY;
+	int dispX, dispY;
 	auto disp = glfwGetPrimaryMonitor();
-	glfwGetMonitorPhysicalSize(disp, &dispX, &dispY);
+	const GLFWvidmode* mode = glfwGetVideoMode(disp);
+	if (mode) {
+		dispX = mode->width;
+		dispY = mode->height;
+		GameToolbox::log("Display resolution: {}x{}", dispX, dispY);
+	} else {
+		GameToolbox::log("Failed to get display mode");
+		dispX = 1280;  // fallback resolution
+		dispY = 720;
+	}
 #endif
 
 #if FULLSCREEN == true
