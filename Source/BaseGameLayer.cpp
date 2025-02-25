@@ -72,37 +72,68 @@ bool BaseGameLayer::init(GJGameLevel* level)
 
 void BaseGameLayer::loadLevel()
 {
-	GameToolbox::log("creating & pushing");
+	GameToolbox::log("=== LEVEL LOADING START ===");
+	GameToolbox::log("Creating & pushing level {}", _level->_levelID);
 	
 	std::string levelString = LevelLoader::getLevelString(_level);
 	if (levelString.empty()) {
-		GameToolbox::log("Error: Empty level string for level {}", _level->_levelID);
+		GameToolbox::log("ERROR: Empty level string for level {}", _level->_levelID);
 		return;
 	}
 	
-	std::string decompressedString;
+	GameToolbox::log("Level string obtained, length: {}", levelString.size());
+	GameToolbox::log("First 50 chars: {}", levelString.substr(0, 50));
 	
 	// Check if the level string is compressed (starts with H4sIAAAAAAAAA)
 	if (LevelLoader::isCompressedFormat(levelString)) {
-		GameToolbox::log("Level is in compressed format, attempting to decompress");
-		decompressedString = GJGameLevel::decompressLvlStr(levelString);
-		if (!decompressedString.empty()) {
-			GameToolbox::log("Successfully decompressed level");
-			levelString = decompressedString;
-		} else {
-			GameToolbox::log("Warning: Failed to decompress level string");
-			return; // Cannot proceed with compressed data that won't decompress
+		GameToolbox::log("DEBUG: Level {} is in compressed format, attempting to decompress", _level->_levelID);
+		try {
+			std::string decompressedString = GJGameLevel::decompressLvlStr(levelString);
+			if (!decompressedString.empty()) {
+				GameToolbox::log("SUCCESS: Decompressed level {}, size: {}", _level->_levelID, decompressedString.size());
+				GameToolbox::log("First 50 chars of decompressed: {}", decompressedString.substr(0, 50));
+				levelString = decompressedString;
+			} else {
+				GameToolbox::log("ERROR: Decompression returned empty string for level {}", _level->_levelID);
+				return; // Cannot proceed with compressed data that won't decompress
+			}
+		} catch (const std::exception& e) {
+			GameToolbox::log("EXCEPTION during decompression of level {}: {}", _level->_levelID, e.what());
+			return; // Cannot proceed if decompression throws an exception
 		}
+	} else {
+		GameToolbox::log("DEBUG: Level {} is in uncompressed format", _level->_levelID);
 	}
 	
 	// Now we have either decompressed data or raw uncompressed data
 	try {
 		auto s = BenchmarkTimer("load level");
-		setupLevel(levelString);
-		createObjectsFromSetup(levelString);
+		
+		// Check if it's XML or JSON format
+		if (LevelLoader::isXMLFormat(levelString)) {
+			GameToolbox::log("DEBUG: Level {} is in XML format", _level->_levelID);
+			parseXMLLevelString(levelString);
+		} else if (LevelLoader::isJSONFormat(levelString)) {
+			GameToolbox::log("DEBUG: Level {} is in JSON format", _level->_levelID);
+			try {
+				nlohmann::json levelJson = nlohmann::json::parse(levelString);
+				parseJSONLevelString(levelJson);
+			} catch (const std::exception& e) {
+				GameToolbox::log("ERROR: JSON parsing failed: {}", e.what());
+				return;
+			}
+		} else {
+			GameToolbox::log("DEBUG: Level {} is in unknown format, using legacy parsing", _level->_levelID);
+			GameToolbox::log("Calling setupLevel()...");
+			setupLevel(levelString);
+			GameToolbox::log("Calling createObjectsFromSetup()...");
+			createObjectsFromSetup(levelString);
+		}
+		GameToolbox::log("Level processing completed successfully");
 	} catch (const std::exception& e) {
-		GameToolbox::log("Error processing level: {}", e.what());
+		GameToolbox::log("EXCEPTION during processing of level {}: {}", _level->_levelID, e.what());
 	}
+	GameToolbox::log("=== LEVEL LOADING END ===");
 }
 
 void BaseGameLayer::parseXMLLevelString(const std::string& levelString)

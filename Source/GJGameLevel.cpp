@@ -104,34 +104,82 @@ GJGameLevel* GJGameLevel::createWithMinimumData(std::string levelName, std::stri
 	return level;
 }
 
-std::string GJGameLevel::decompressLvlStr(std::string compressedLvlStr)
-{
-	if (compressedLvlStr.empty()) return "";
-
+std::string GJGameLevel::decompressLvlStr(const std::string& str) {
+	GameToolbox::log("=== DECOMPRESSION START ===");
+	if (str.empty()) {
+		GameToolbox::log("ERROR: Cannot decompress empty string");
+		return "";
+	}
+	
+	GameToolbox::log("Input string length: {}", str.size());
+	GameToolbox::log("First 20 chars: {}", str.substr(0, 20));
+	
 	try {
-		std::replace(compressedLvlStr.begin(), compressedLvlStr.end(), '_', '/');
-		std::replace(compressedLvlStr.begin(), compressedLvlStr.end(), '-', '+');
-
-		std::string decoded = base64_decode(compressedLvlStr);
-		if (decoded.empty()) {
-			GameToolbox::log("Base64 decoding failed");
-			return "";
-		}
-
-		unsigned char* data = (unsigned char*)decoded.data();
-		unsigned char* a = nullptr;
-		ssize_t deflatedLen = ax::ZipUtils::inflateMemory(data, decoded.length(), &a);
+		// Check if the string is already in the correct format for decompression
+		std::string input = str;
 		
-		if (deflatedLen <= 0 || a == nullptr) {
-			GameToolbox::log("Decompression failed, deflatedLen: {}", deflatedLen);
-			return "";
+		// If the string starts with H4sIAAAAAAAAA, it's base64 encoded gzip data
+		if (input.substr(0, 14) == "H4sIAAAAAAAAA") {
+			GameToolbox::log("DEBUG: Detected base64 gzip header");
+			
+			// Remove the gzip header if present
+			if (input.length() > 14) {
+				input = input.substr(14);
+				GameToolbox::log("DEBUG: Removed header, new length: {}", input.size());
+			}
+			
+			// Decode base64
+			unsigned char* deflated = nullptr;
+			size_t deflatedLen = 0;
+			
+			GameToolbox::log("DEBUG: Calling base64Decode...");
+			// Use ZipUtils to decode and decompress
+			deflated = ax::ZipUtils::base64Decode(input, &deflatedLen);
+			if (!deflated || deflatedLen == 0) {
+				GameToolbox::log("ERROR: Base64 decoding failed! deflated={}, deflatedLen={}", 
+								(deflated ? "not null" : "null"), deflatedLen);
+				return "";
+			}
+			
+			GameToolbox::log("DEBUG: Base64 decode successful, deflatedLen: {}", deflatedLen);
+			
+			// Decompress the data
+			unsigned char* inflated = nullptr;
+			size_t inflatedLen = 0;
+			
+			GameToolbox::log("DEBUG: Calling inflateMemory...");
+			inflated = ax::ZipUtils::inflateMemory(deflated, deflatedLen, &inflatedLen);
+			GameToolbox::log("DEBUG: After inflateMemory call");
+			
+			free(deflated); // Free the deflated buffer
+			GameToolbox::log("DEBUG: Freed deflated buffer");
+			
+			if (!inflated || inflatedLen == 0) {
+				GameToolbox::log("ERROR: Decompression failed, inflated={}, inflatedLen={}", 
+								(inflated ? "not null" : "null"), inflatedLen);
+				return "";
+			}
+			
+			GameToolbox::log("DEBUG: Decompression successful, inflatedLen: {}", inflatedLen);
+			
+			// Convert to string
+			std::string result(reinterpret_cast<char*>(inflated), inflatedLen);
+			GameToolbox::log("DEBUG: Converted to string, length: {}", result.size());
+			GameToolbox::log("First 50 chars of result: {}", result.substr(0, 50));
+			
+			free(inflated); // Free the inflated buffer
+			GameToolbox::log("DEBUG: Freed inflated buffer");
+			
+			GameToolbox::log("=== DECOMPRESSION END ===");
+			return result;
+		} else {
+			GameToolbox::log("DEBUG: Input is not in expected compressed format");
+			GameToolbox::log("=== DECOMPRESSION END ===");
+			return str; // Return the original string if it's not in the expected format
 		}
-
-		std::string levelString(reinterpret_cast<char*>(a), deflatedLen);
-		free(a);
-		return levelString;
 	} catch (const std::exception& e) {
-		GameToolbox::log("Error decompressing level: {}", e.what());
+		GameToolbox::log("EXCEPTION during decompression: {}", e.what());
+		GameToolbox::log("=== DECOMPRESSION END ===");
 		return "";
 	}
 }
