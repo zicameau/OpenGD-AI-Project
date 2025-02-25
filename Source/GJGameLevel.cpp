@@ -27,137 +27,6 @@
 #include <string>
 #include <vector>
 
-// Base64 decoding function
-static const std::string base64_chars = 
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789+/";
-
-static inline bool is_base64(unsigned char c) {
-    return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-static std::vector<unsigned char> base64_decode(const std::string& encoded_string) {
-    int in_len = encoded_string.size();
-    int i = 0;
-    int j = 0;
-    int in_ = 0;
-    unsigned char char_array_4[4], char_array_3[3];
-    std::vector<unsigned char> ret;
-
-    while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-        char_array_4[i++] = encoded_string[in_]; in_++;
-        if (i == 4) {
-            for (i = 0; i < 4; i++)
-                char_array_4[i] = base64_chars.find(char_array_4[i]);
-
-            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-            for (i = 0; i < 3; i++)
-                ret.push_back(char_array_3[i]);
-            i = 0;
-        }
-    }
-
-    if (i) {
-        for (j = i; j < 4; j++)
-            char_array_4[j] = 0;
-
-        for (j = 0; j < 4; j++)
-            char_array_4[j] = base64_chars.find(char_array_4[j]);
-
-        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-        for (j = 0; j < i - 1; j++)
-            ret.push_back(char_array_3[j]);
-    }
-
-    return ret;
-}
-
-//the only thing we actually want as normal string is the class members
-static inline std::string _toString(std::string_view s) {
-	return {s.begin(), s.end()};
-}
-
-GJGameLevel* GJGameLevel::create()
-{
-	auto ret = new GJGameLevel();
-	return ret;
-}
-
-GJGameLevel* GJGameLevel::createWithResponse(std::string_view backendResponse)
-{
-	auto ret = new GJGameLevel();
-
-	std::string_view::size_type pos = 0;
-	std::string_view::size_type nextPos = 0;
-
-	// Iterate through the response string
-	while ((nextPos = backendResponse.find(':', pos)) != std::string_view::npos)
-	{
-		std::string_view key = backendResponse.substr(pos, nextPos - pos);
-		pos = nextPos + 1;
-
-		nextPos = backendResponse.find(':', pos);
-		if (nextPos == std::string_view::npos)
-			break;
-
-		std::string_view value = backendResponse.substr(pos, nextPos - pos);
-		pos = nextPos + 1;
-
-		// Process key-value pairs
-		if (key == "1") ret->_levelID = GameToolbox::stoi(value);
-		else if (key == "2") ret->_levelName = value;
-		else if (key == "3") ret->_description = value;
-		else if (key == "4") ret->_levelString = value;
-		else if (key == "5") ret->_levelCreator = value;
-		else if (key == "6") ret->_difficultyDenominator = GameToolbox::stoi(value);
-		else if (key == "7") ret->_difficultyNumerator = GameToolbox::stoi(value);
-		else if (key == "8") ret->_downloads = GameToolbox::stoi(value);
-		else if (key == "9") ret->_officialSongID = GameToolbox::stoi(value);
-		else if (key == "10") ret->_gameVersion = GameToolbox::stoi(value);
-		else if (key == "11") ret->_likes = GameToolbox::stoi(value);
-		else if (key == "12") ret->_length = GameToolbox::stoi(value);
-		else if (key == "13") ret->_demon = GameToolbox::stoi(value) == 1;
-		else if (key == "14") ret->_stars = GameToolbox::stoi(value);
-		else if (key == "15") ret->_featureScore = GameToolbox::stoi(value);
-		else if (key == "16") ret->_auto = GameToolbox::stoi(value) == 1;
-		else if (key == "17") ret->_XORPassword = value;
-		else if (key == "18") ret->_uploadDate = value;
-		else if (key == "19") ret->_updateDate = value;
-		else if (key == "27") ret->_verifiedCoins = GameToolbox::stoi(value) == 1;
-		else if (key == "35") ret->_songName = value;
-		else if (key == "36") ret->_songID = GameToolbox::stoi(value);
-		else if (key == "37") ret->_sondURL = value;
-		else if (key == "38") ret->_gameVersion = GameToolbox::stoi(value);
-		else if (key == "39") ret->_gameVersion = GameToolbox::stoi(value);
-		else if (key == "41") ret->_normalPercent = GameToolbox::stof(value);
-		else if (key == "42") ret->_practicePercent = GameToolbox::stof(value);
-		else if (key == "43") ret->_likes = GameToolbox::stoi(value);
-		else if (key == "45") ret->_dislikes = GameToolbox::stoi(value);
-		else if (key == "46") ret->_stars = GameToolbox::stoi(value);
-		else if (key == "47") ret->_starsRequested = GameToolbox::stoi(value) == 1;
-	}
-
-	return ret;
-}
-
-GJGameLevel* GJGameLevel::createWithMinimumData(std::string levelName, std::string levelCreator, int levelID)
-{
-	auto level = GJGameLevel::create();
-
-	level->_levelName = levelName;
-	level->_levelID = levelID;
-	level->_levelCreator = levelCreator;
-
-	return level;
-}
-
 // Updated decompression function using existing functionality
 std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 	GameToolbox::log("=== DECOMPRESSION START ===");
@@ -235,6 +104,80 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 		GameToolbox::log("=== DECOMPRESSION END ===");
 		return "";
 	}
+}
+
+GJGameLevel* GJGameLevel::create()
+{
+	auto ret = new GJGameLevel();
+	return ret;
+}
+
+GJGameLevel* GJGameLevel::createWithResponse(std::string_view backendResponse)
+{
+	auto ret = new GJGameLevel();
+
+	std::string_view::size_type pos = 0;
+	std::string_view::size_type nextPos = 0;
+
+	// Iterate through the response string
+	while ((nextPos = backendResponse.find(':', pos)) != std::string_view::npos)
+	{
+		std::string_view key = backendResponse.substr(pos, nextPos - pos);
+		pos = nextPos + 1;
+
+		nextPos = backendResponse.find(':', pos);
+		if (nextPos == std::string_view::npos)
+			break;
+
+		std::string_view value = backendResponse.substr(pos, nextPos - pos);
+		pos = nextPos + 1;
+
+		// Process key-value pairs
+		if (key == "1") ret->_levelID = GameToolbox::stoi(value);
+		else if (key == "2") ret->_levelName = value;
+		else if (key == "3") ret->_description = value;
+		else if (key == "4") ret->_levelString = value;
+		else if (key == "5") ret->_levelCreator = value;
+		else if (key == "6") ret->_difficultyDenominator = GameToolbox::stoi(value);
+		else if (key == "7") ret->_difficultyNumerator = GameToolbox::stoi(value);
+		else if (key == "8") ret->_downloads = GameToolbox::stoi(value);
+		else if (key == "9") ret->_officialSongID = GameToolbox::stoi(value);
+		else if (key == "10") ret->_gameVersion = GameToolbox::stoi(value);
+		else if (key == "11") ret->_likes = GameToolbox::stoi(value);
+		else if (key == "12") ret->_length = GameToolbox::stoi(value);
+		else if (key == "13") ret->_demon = GameToolbox::stoi(value) == 1;
+		else if (key == "14") ret->_stars = GameToolbox::stoi(value);
+		else if (key == "15") ret->_featureScore = GameToolbox::stoi(value);
+		else if (key == "16") ret->_auto = GameToolbox::stoi(value) == 1;
+		else if (key == "17") ret->_XORPassword = value;
+		else if (key == "18") ret->_uploadDate = value;
+		else if (key == "19") ret->_updateDate = value;
+		else if (key == "27") ret->_verifiedCoins = GameToolbox::stoi(value) == 1;
+		else if (key == "35") ret->_songName = value;
+		else if (key == "36") ret->_songID = GameToolbox::stoi(value);
+		else if (key == "37") ret->_sondURL = value;
+		else if (key == "38") ret->_gameVersion = GameToolbox::stoi(value);
+		else if (key == "39") ret->_gameVersion = GameToolbox::stoi(value);
+		else if (key == "41") ret->_normalPercent = GameToolbox::stof(value);
+		else if (key == "42") ret->_practicePercent = GameToolbox::stof(value);
+		else if (key == "43") ret->_likes = GameToolbox::stoi(value);
+		else if (key == "45") ret->_dislikes = GameToolbox::stoi(value);
+		else if (key == "46") ret->_stars = GameToolbox::stoi(value);
+		else if (key == "47") ret->_starsRequested = GameToolbox::stoi(value) == 1;
+	}
+
+	return ret;
+}
+
+GJGameLevel* GJGameLevel::createWithMinimumData(std::string levelName, std::string levelCreator, int levelID)
+{
+	auto level = GJGameLevel::create();
+
+	level->_levelName = levelName;
+	level->_levelID = levelID;
+	level->_levelCreator = levelCreator;
+
+	return level;
 }
 
 std::string GJGameLevel::getDifficultySprite(GJGameLevel* level, DifficultyType type)
