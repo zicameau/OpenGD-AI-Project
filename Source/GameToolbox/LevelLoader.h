@@ -26,7 +26,12 @@ namespace LevelLoader {
                         if (file.contains(levelID)) {
                             std::string levelData = file.at(levelID).get<std::string>();
                             if (!levelData.empty()) {
-                                levelStr = fmt::format("H4sIAAAAAAAAA{}", levelData);
+                                // Check if it already has the H4sIAAAAAAAAA prefix
+                                if (levelData.length() > 14 && levelData.substr(0, 14) == "H4sIAAAAAAAAA") {
+                                    levelStr = levelData;
+                                } else {
+                                    levelStr = fmt::format("H4sIAAAAAAAAA{}", levelData);
+                                }
                                 GameToolbox::log("Loaded level {} from mainLevels.json", levelID);
                                 return levelStr;
                             }
@@ -44,11 +49,42 @@ namespace LevelLoader {
                 std::string content = fu->getStringFromFile(levelPath);
                 if (!content.empty()) {
                     GameToolbox::log("Loaded level {} from file, size: {}", levelID, content.size());
+                    
+                    // Try to determine if the content is already compressed
+                    bool isCompressed = false;
+                    
                     // Check if it already has the H4sIAAAAAAAAA prefix
                     if (content.length() > 14 && content.substr(0, 14) == "H4sIAAAAAAAAA") {
-                        return content;
+                        isCompressed = true;
+                        levelStr = content;
                     } else {
-                        return fmt::format("H4sIAAAAAAAAA{}", content);
+                        // Try to detect if it's a raw level string (XML-like format)
+                        if (content.find("<k>kA2</k>") != std::string::npos || 
+                            content.find("<k>kA4</k>") != std::string::npos) {
+                            // This appears to be an uncompressed level string
+                            GameToolbox::log("Level {} appears to be uncompressed XML", levelID);
+                            level->_levelString = content;
+                            return content;
+                        } else {
+                            // Assume it's base64 data that needs the prefix
+                            levelStr = fmt::format("H4sIAAAAAAAAA{}", content);
+                            isCompressed = true;
+                        }
+                    }
+                    
+                    if (isCompressed) {
+                        // Test decompression before returning
+                        std::string decompressed = GJGameLevel::decompressLvlStr(levelStr);
+                        if (!decompressed.empty()) {
+                            GameToolbox::log("Successfully decompressed level {}", levelID);
+                            level->_levelString = levelStr;
+                            return levelStr;
+                        } else {
+                            GameToolbox::log("Failed to decompress level {}, using raw content", levelID);
+                            // If decompression failed, just use the raw content
+                            level->_levelString = content;
+                            return content;
+                        }
                     }
                 } else {
                     GameToolbox::log("Level file {} is empty", levelPath);
@@ -61,6 +97,6 @@ namespace LevelLoader {
         }
         
         GameToolbox::log("Failed to load level {}", levelID);
-        return levelStr;
+        return "";
     }
 } 

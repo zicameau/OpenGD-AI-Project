@@ -41,17 +41,18 @@
 - [x] Incorrect display size calculation (Fixed)
 - [x] Silent resource loading failures (Fixed with debug logs)
 - [x] No user feedback for resource loading status (Fixed)
-- [ ] JSON parsing errors for level data
-- [ ] Missing required directory structure
+- [x] JSON parsing errors for level data (Fixed)
+- [x] Missing required directory structure (Fixed)
+- [x] Level decompression failures (Fixed)
 
 ## Future Improvements
 - [x] Add configuration for resource paths
 - [x] Implement resource validation checks
-- [ ] Add detailed error reporting
+- [x] Add detailed error reporting
 - [ ] Create Linux-specific installation guide
 - [ ] Add dependency installation script to build process
-- [ ] Create default level data structure
-- [ ] Add automatic Custom directory creation
+- [x] Create default level data structure
+- [x] Add automatic Custom directory creation
 
 ## Level Loading Implementation
 
@@ -60,6 +61,7 @@
 - [x] Added support for loading levels from both Custom/mainLevels.json and directly from levels/*.txt files
 - [x] Added error handling for corrupted level data
 - [x] Fixed build errors related to missing headers
+- [x] Added fallback to raw level data when decompression fails
 
 ### Issues Fixed
 - [x] Fixed JSON parsing errors in ResourcesLoadingLayer
@@ -70,6 +72,7 @@
 - [x] Fixed member variable name errors in GJGameLevel.cpp (_levelVersion → _gameVersion, _starRequested → _starsRequested)
 - [x] Removed reference to non-existent _attempts member variable
 - [x] Fixed deprecated implicit this capture warnings in CircleWave.cpp
+- [x] Fixed segmentation fault when decompression fails
 
 ### Implementation Details
 1. [x] Created a centralized LevelLoader utility to handle level loading consistently
@@ -77,6 +80,7 @@
 3. [x] Added robust error handling for compressed level data
 4. [x] Improved logging to help diagnose issues
 5. [x] Fixed build errors to ensure compatibility with Linux
+6. [x] Added detection for uncompressed level data
 
 ### Next Steps
 - [ ] Test with various level formats and compression types
