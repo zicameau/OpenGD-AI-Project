@@ -301,11 +301,12 @@ if(LINUX)
     )
 endif()
 
-# Add this near the top of the file, before any other platform definitions
-if(DEFINED AX_PLATFORM_LINUX)
-    # Remove the existing definition to avoid redefinition warnings
-    remove_definitions(-DAX_PLATFORM_LINUX=${AX_PLATFORM_LINUX})
+# Remove the existing definition to avoid redefinition warnings
+if(COMMAND remove_definitions)
+    remove_definitions(-DAX_PLATFORM_LINUX=3)
 endif()
 
-# Then add the definition with the correct value
-add_definitions(-DAX_PLATFORM_LINUX=3)
+# Instead of redefining it, check if it's already defined
+if(NOT DEFINED AX_PLATFORM_LINUX)
+    add_definitions(-DAX_PLATFORM_LINUX=3)
+endif()

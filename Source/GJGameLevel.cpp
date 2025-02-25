@@ -129,32 +129,30 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 			}
 			
 			// Decode base64
-			unsigned char* deflated = nullptr;
-			size_t deflatedLen = 0;
-			
-			GameToolbox::log("DEBUG: Calling base64Decode...");
-			// Use ZipUtils to decode and decompress
-			deflated = ax::ZipUtils::base64Decode(input, &deflatedLen);
-			if (!deflated || deflatedLen == 0) {
-				GameToolbox::log("ERROR: Base64 decoding failed! deflated={}, deflatedLen={}", 
-								(deflated ? "not null" : "null"), deflatedLen);
+			GameToolbox::log("DEBUG: Decoding base64...");
+			std::string decoded;
+			if (!ax::base64Decode(input, &decoded)) {
+				GameToolbox::log("ERROR: Base64 decoding failed!");
 				return "";
 			}
 			
-			GameToolbox::log("DEBUG: Base64 decode successful, deflatedLen: {}", deflatedLen);
+			GameToolbox::log("DEBUG: Base64 decode successful, decoded length: {}", decoded.size());
 			
 			// Decompress the data
 			unsigned char* inflated = nullptr;
-			size_t inflatedLen = 0;
+			ssize_t inflatedLen;
 			
-			GameToolbox::log("DEBUG: Calling inflateMemory...");
-			inflated = ax::ZipUtils::inflateMemory(deflated, deflatedLen, &inflatedLen);
-			GameToolbox::log("DEBUG: After inflateMemory call");
+			GameToolbox::log("DEBUG: Calling inflateMemoryWithHint...");
+			inflatedLen = ax::ZipUtils::inflateMemoryWithHint(
+				(unsigned char*)decoded.data(), 
+				decoded.size(), 
+				&inflated, 
+				decoded.size() * 10  // Hint for output buffer size
+			);
 			
-			free(deflated); // Free the deflated buffer
-			GameToolbox::log("DEBUG: Freed deflated buffer");
+			GameToolbox::log("DEBUG: After inflateMemoryWithHint call");
 			
-			if (!inflated || inflatedLen == 0) {
+			if (!inflated || inflatedLen <= 0) {
 				GameToolbox::log("ERROR: Decompression failed, inflated={}, inflatedLen={}", 
 								(inflated ? "not null" : "null"), inflatedLen);
 				return "";
