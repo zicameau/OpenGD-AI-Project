@@ -158,7 +158,7 @@ GJGameLevel* GJGameLevel::createWithMinimumData(std::string levelName, std::stri
 	return level;
 }
 
-// Updated decompression function
+// Updated decompression function using existing functionality
 std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 	GameToolbox::log("=== DECOMPRESSION START ===");
 	if (str.empty()) {
@@ -183,9 +183,9 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 				GameToolbox::log("DEBUG: Removed header, new length: {}", input.size());
 			}
 			
-			// Decode base64
+			// Decode base64 using the existing function
 			GameToolbox::log("DEBUG: Decoding base64...");
-			std::vector<unsigned char> decoded = base64_decode(input);
+			std::string decoded = base64_decode(input);
 			if (decoded.empty()) {
 				GameToolbox::log("ERROR: Base64 decoding failed!");
 				return "";
@@ -193,13 +193,13 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 			
 			GameToolbox::log("DEBUG: Base64 decode successful, decoded length: {}", decoded.size());
 			
-			// Decompress the data
+			// Decompress the data using ZipUtils
 			unsigned char* inflated = nullptr;
 			ssize_t inflatedLen;
 			
 			GameToolbox::log("DEBUG: Calling inflateMemoryWithHint...");
 			inflatedLen = ax::ZipUtils::inflateMemoryWithHint(
-				decoded.data(), 
+				(unsigned char*)decoded.data(), 
 				decoded.size(), 
 				&inflated, 
 				decoded.size() * 10  // Hint for output buffer size
