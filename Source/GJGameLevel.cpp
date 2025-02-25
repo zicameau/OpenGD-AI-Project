@@ -23,7 +23,61 @@
 #include "external/base64.h"
 
 #include <ZipUtils.h>
+#include <algorithm>
+#include <string>
+#include <vector>
 
+// Base64 decoding function
+static const std::string base64_chars = 
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+
+static inline bool is_base64(unsigned char c) {
+    return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+static std::vector<unsigned char> base64_decode(const std::string& encoded_string) {
+    int in_len = encoded_string.size();
+    int i = 0;
+    int j = 0;
+    int in_ = 0;
+    unsigned char char_array_4[4], char_array_3[3];
+    std::vector<unsigned char> ret;
+
+    while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
+        char_array_4[i++] = encoded_string[in_]; in_++;
+        if (i == 4) {
+            for (i = 0; i < 4; i++)
+                char_array_4[i] = base64_chars.find(char_array_4[i]);
+
+            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+            for (i = 0; i < 3; i++)
+                ret.push_back(char_array_3[i]);
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for (j = i; j < 4; j++)
+            char_array_4[j] = 0;
+
+        for (j = 0; j < 4; j++)
+            char_array_4[j] = base64_chars.find(char_array_4[j]);
+
+        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+        for (j = 0; j < i - 1; j++)
+            ret.push_back(char_array_3[j]);
+    }
+
+    return ret;
+}
 
 //the only thing we actually want as normal string is the class members
 static inline std::string _toString(std::string_view s) {
@@ -104,6 +158,7 @@ GJGameLevel* GJGameLevel::createWithMinimumData(std::string levelName, std::stri
 	return level;
 }
 
+// Updated decompression function
 std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 	GameToolbox::log("=== DECOMPRESSION START ===");
 	if (str.empty()) {
@@ -130,8 +185,8 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 			
 			// Decode base64
 			GameToolbox::log("DEBUG: Decoding base64...");
-			std::string decoded;
-			if (!ax::base64Decode(input, &decoded)) {
+			std::vector<unsigned char> decoded = base64_decode(input);
+			if (decoded.empty()) {
 				GameToolbox::log("ERROR: Base64 decoding failed!");
 				return "";
 			}
@@ -144,7 +199,7 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 			
 			GameToolbox::log("DEBUG: Calling inflateMemoryWithHint...");
 			inflatedLen = ax::ZipUtils::inflateMemoryWithHint(
-				(unsigned char*)decoded.data(), 
+				decoded.data(), 
 				decoded.size(), 
 				&inflated, 
 				decoded.size() * 10  // Hint for output buffer size
