@@ -46,9 +46,6 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 		if (input.substr(0, 4) == "H4sI") {
 			GameToolbox::log("DEBUG: Detected base64 gzip header");
 			
-			// For level 1, we need to use the entire string without removing any header
-			GameToolbox::log("DEBUG: Using full string for base64 decoding");
-			
 			// Decode base64 using the existing function
 			GameToolbox::log("DEBUG: Decoding base64...");
 			std::string decoded = base64_decode(input);
@@ -59,23 +56,44 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 			
 			GameToolbox::log("DEBUG: Base64 decode successful, decoded length: {}", decoded.size());
 			
-			// Decompress the data using ZipUtils
+			// Use a more conservative memory hint for decompression
+			// Start with a smaller multiplier and retry with larger if needed
 			unsigned char* inflated = nullptr;
-			ssize_t inflatedLen;
+			ssize_t inflatedLen = 0;
 			
-			GameToolbox::log("DEBUG: Calling inflateMemoryWithHint...");
-			inflatedLen = ax::ZipUtils::inflateMemoryWithHint(
-				(unsigned char*)decoded.data(), 
-				decoded.size(), 
-				&inflated, 
-				decoded.size() * 10  // Hint for output buffer size
-			);
+			// Try with progressively larger output buffer sizes
+			for (int multiplier = 2; multiplier <= 20; multiplier += 2) {
+				GameToolbox::log("DEBUG: Trying decompression with multiplier {}", multiplier);
+				
+				// Free previous attempt if any
+				if (inflated) {
+					free(inflated);
+					inflated = nullptr;
+				}
+				
+				// Try to decompress
+				GameToolbox::log("DEBUG: Calling inflateMemoryWithHint...");
+				inflatedLen = ax::ZipUtils::inflateMemoryWithHint(
+					(unsigned char*)decoded.data(), 
+					decoded.size(), 
+					&inflated, 
+					decoded.size() * multiplier
+				);
+				
+				GameToolbox::log("DEBUG: After inflateMemoryWithHint call");
+				
+				// If successful, break out of the loop
+				if (inflated && inflatedLen > 0) {
+					GameToolbox::log("DEBUG: Decompression successful with multiplier {}", multiplier);
+					break;
+				}
+				
+				GameToolbox::log("DEBUG: Decompression failed with multiplier {}, trying larger buffer", multiplier);
+			}
 			
-			GameToolbox::log("DEBUG: After inflateMemoryWithHint call");
-			
+			// Check if any of the attempts succeeded
 			if (!inflated || inflatedLen <= 0) {
-				GameToolbox::log("ERROR: Decompression failed, inflated={}, inflatedLen={}", 
-								(inflated ? "not null" : "null"), inflatedLen);
+				GameToolbox::log("ERROR: All decompression attempts failed");
 				return "";
 			}
 			
