@@ -42,23 +42,11 @@ namespace LevelLoader {
                             std::string levelData = file.at(levelID).get<std::string>();
                             if (!levelData.empty()) {
                                 GameToolbox::log("Loaded level {} from mainLevels.json", levelID);
-                                
-                                // Determine format and handle accordingly
-                                if (isCompressedFormat(levelData)) {
-                                    level->_levelString = levelData;
-                                    return levelData;
-                                } else if (isXMLFormat(levelData) || isJSONFormat(levelData)) {
-                                    level->_levelString = levelData;
-                                    return levelData;
-                                } else {
-                                    // Assume it needs compression prefix
-                                    levelStr = fmt::format("H4sIAAAAAAAAA{}", levelData);
-                                    level->_levelString = levelStr;
-                                    return levelStr;
-                                }
+                                level->_levelString = levelData;
+                                return levelData;
                             }
                         }
-                    } catch (const std::exception& e) {
+                    } catch (const nlohmann::json::exception& e) {
                         GameToolbox::log("Error parsing mainLevels.json: {}", e.what());
                     }
                 }
@@ -72,42 +60,11 @@ namespace LevelLoader {
                 if (!content.empty()) {
                     GameToolbox::log("Loaded level {} from file, size: {}", levelID, content.size());
                     
-                    // Determine format and handle accordingly
-                    if (isCompressedFormat(content)) {
-                        GameToolbox::log("Level {} is in compressed format", levelID);
-                        std::string decompressed = GJGameLevel::decompressLvlStr(content);
-                        if (!decompressed.empty()) {
-                            GameToolbox::log("Successfully decompressed level {}", levelID);
-                            level->_levelString = content;
-                            return content;
-                        } else {
-                            GameToolbox::log("Failed to decompress level {}, using raw content", levelID);
-                            level->_levelString = content;
-                            return content;
-                        }
-                    } else if (isXMLFormat(content)) {
-                        GameToolbox::log("Level {} is in XML format", levelID);
-                        level->_levelString = content;
-                        return content;
-                    } else if (isJSONFormat(content)) {
-                        GameToolbox::log("Level {} is in JSON format", levelID);
-                        level->_levelString = content;
-                        return content;
-                    } else {
-                        // Unknown format, try adding compression prefix
-                        GameToolbox::log("Level {} is in unknown format, trying with compression prefix", levelID);
-                        levelStr = fmt::format("H4sIAAAAAAAAA{}", content);
-                        std::string decompressed = GJGameLevel::decompressLvlStr(levelStr);
-                        if (!decompressed.empty()) {
-                            GameToolbox::log("Successfully processed level {} with compression prefix", levelID);
-                            level->_levelString = levelStr;
-                            return levelStr;
-                        } else {
-                            GameToolbox::log("Failed to process level {}, using raw content", levelID);
-                            level->_levelString = content;
-                            return content;
-                        }
-                    }
+                    // Store the raw content first
+                    level->_levelString = content;
+                    
+                    // Return the content as is - decompression will be handled in BaseGameLayer
+                    return content;
                 } else {
                     GameToolbox::log("Level file {} is empty", levelPath);
                 }

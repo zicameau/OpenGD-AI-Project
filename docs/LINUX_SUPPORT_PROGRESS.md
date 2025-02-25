@@ -66,6 +66,7 @@
 - [x] Added fallback to raw level data when decompression fails
 - [x] Added format detection for XML, JSON, and compressed level data
 - [x] Added proper function declarations in header files
+- [x] Fixed handling of already compressed level data
 
 ### Issues Fixed
 - [x] Fixed JSON parsing errors in ResourcesLoadingLayer
@@ -79,6 +80,8 @@
 - [x] Fixed segmentation fault when decompression fails
 - [x] Added XML parsing fallback for level data
 - [x] Fixed missing function declarations in BaseGameLayer.h
+- [x] Fixed double compression issue with level data
+- [x] Improved error handling in level loading process
 
 ### Implementation Details
 1. [x] Created a centralized LevelLoader utility to handle level loading consistently
@@ -89,6 +92,7 @@
 6. [x] Added detection for uncompressed level data
 7. [x] Added format-specific parsing for XML and JSON level data
 8. [x] Added proper header declarations for all new functions
+9. [x] Simplified level loading process to avoid redundant operations
 
 ### Next Steps
 - [ ] Test with various level formats and compression types
