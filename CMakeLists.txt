@@ -300,3 +300,12 @@ if(LINUX)
         GL_GLEXT_PROTOTYPES
     )
 endif()
+
+# Add this near the top of the file, before any other platform definitions
+if(DEFINED AX_PLATFORM_LINUX)
+    # Remove the existing definition to avoid redefinition warnings
+    remove_definitions(-DAX_PLATFORM_LINUX=${AX_PLATFORM_LINUX})
+endif()
+
+# Then add the definition with the correct value
+add_definitions(-DAX_PLATFORM_LINUX=3)

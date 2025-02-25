@@ -19,6 +19,9 @@
 #pragma once
 #include <string>
 #include <string_view>
+#include <vector>
+#include "platform/FileUtils.h"
+#include "external/json.hpp"
 
 class GJGameLevel;
 
@@ -26,6 +29,29 @@ enum DifficultyType {
 	kMainLevels = 0,
 	kLevelCell,
 	kLevelInfoLayer
+};
+
+enum GJDifficulty {
+	kGJDifficultyAuto = 0,
+	kGJDifficultyEasy = 1,
+	kGJDifficultyNormal = 2,
+	kGJDifficultyHard = 3,
+	kGJDifficultyHarder = 4,
+	kGJDifficultyInsane = 5,
+	kGJDifficultyDemon = 6,
+	kGJDifficultyDemonEasy = 7,
+	kGJDifficultyDemonMedium = 8,
+	kGJDifficultyDemonHard = 9,
+	kGJDifficultyDemonInsane = 10,
+	kGJDifficultyDemonExtreme = 11,
+	kGJDifficultyNA = 12
+};
+
+enum GJLevelType {
+	kGJLevelTypeOfficial = 1,
+	kGJLevelTypeEditor = 2,
+	kGJLevelTypeSaved = 3,
+	kGJLevelTypeOnline = 4
 };
 
 class GJGameLevel { 
@@ -86,9 +112,15 @@ public:
 	static GJGameLevel *createWithResponse(std::string_view backendResponse);
 	static GJGameLevel *createWithMinimumData(std::string levelName, std::string creatorNickname, int levelID);
 	static GJGameLevel *create();
+	static GJGameLevel *createWithCoder(ax::FileUtils* fu);
 
 	static std::string getLevelStrFromID(int gdLevelID);
-	static std::string decompressLvlStr(std::string compressedLvlStr);
+	static std::string decompressLvlStr(const std::string& compressedLvlStr);
 
 	static std::string getDifficultySprite(GJGameLevel* level, DifficultyType type = kLevelCell);
+
+	void parseKV2Tags(std::string& str);
+	void parseOldLevelInfo(std::string& str);
+	void parseProperties(std::string& str);
+	void parsePropertiesJSON(const nlohmann::json& json);
 };
