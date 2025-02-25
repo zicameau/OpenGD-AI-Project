@@ -116,20 +116,32 @@ std::string GJGameLevel::decompressLvlStr(std::string compressedLvlStr)
 {
 	if (compressedLvlStr.empty()) return "";
 
-	std::replace(compressedLvlStr.begin(), compressedLvlStr.end(), '_', '/');
-	std::replace(compressedLvlStr.begin(), compressedLvlStr.end(), '-', '+');
+	try {
+		std::replace(compressedLvlStr.begin(), compressedLvlStr.end(), '_', '/');
+		std::replace(compressedLvlStr.begin(), compressedLvlStr.end(), '-', '+');
 
-	std::string decoded = base64_decode(compressedLvlStr);
+		std::string decoded = base64_decode(compressedLvlStr);
+		if (decoded.empty()) {
+			GameToolbox::log("Base64 decoding failed");
+			return "";
+		}
 
-	unsigned char* data = (unsigned char*)decoded.data();
-	unsigned char* a = nullptr;
-	ssize_t deflatedLen = ax::ZipUtils::inflateMemory(data, decoded.length(), &a);
+		unsigned char* data = (unsigned char*)decoded.data();
+		unsigned char* a = nullptr;
+		ssize_t deflatedLen = ax::ZipUtils::inflateMemory(data, decoded.length(), &a);
+		
+		if (deflatedLen <= 0 || a == nullptr) {
+			GameToolbox::log("Decompression failed, deflatedLen: {}", deflatedLen);
+			return "";
+		}
 
-	std::string levelString = (char *)a;
-
-	free(a);
-
-	return levelString;
+		std::string levelString(reinterpret_cast<char*>(a), deflatedLen);
+		free(a);
+		return levelString;
+	} catch (const std::exception& e) {
+		GameToolbox::log("Error decompressing level: {}", e.what());
+		return "";
+	}
 }
 
 std::string GJGameLevel::getDifficultySprite(GJGameLevel* level, DifficultyType type)

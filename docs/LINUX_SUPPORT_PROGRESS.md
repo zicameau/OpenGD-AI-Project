@@ -51,4 +51,28 @@
 - [ ] Create Linux-specific installation guide
 - [ ] Add dependency installation script to build process
 - [ ] Create default level data structure
-- [ ] Add automatic Custom directory creation 
+- [ ] Add automatic Custom directory creation
+
+## Level Loading Implementation
+
+### Current Status
+- Implemented level loading from original Geometry Dash resources
+- Added support for loading levels from both Custom/mainLevels.json and directly from levels/*.txt files
+- Added error handling for corrupted level data
+
+### Issues Fixed
+- Fixed JSON parsing errors in ResourcesLoadingLayer
+- Added proper error handling for decompression failures
+- Fixed null pointer exception in string construction
+- Added detailed logging for debugging
+
+### Implementation Details
+1. Created a centralized LevelLoader utility to handle level loading consistently
+2. Modified ResourcesLoadingLayer to properly detect and use the levels directory
+3. Added robust error handling for compressed level data
+4. Improved logging to help diagnose issues
+
+### Next Steps
+- Test with various level formats and compression types
+- Add support for custom levels
+- Improve error messages for users 
