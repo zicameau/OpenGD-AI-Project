@@ -262,48 +262,58 @@ void ResourcesLoadingLayer::handleLinux() {
 	}
 
 	// Create Custom directory if it doesn't exist
-	std::string customDir = "Custom";
+	std::string customDir = resourcePath + "/Custom";
 	if (!_fu->isDirectoryExist(customDir)) {
 		GameToolbox::log("Creating Custom directory");
 		_fu->createDirectory(customDir);
 	}
 
 	// Create or validate mainLevels.json
-	std::string levelsPath = "Custom/mainLevels.json";
+	std::string levelsPath = customDir + "/mainLevels.json";
 	if (!_fu->isFileExist(levelsPath)) {
-		GameToolbox::log("Creating mainLevels.json");
+		GameToolbox::log("Creating mainLevels.json at {}", levelsPath);
 		
 		// Create JSON with level data from level files
-		nlohmann::json levelsJson;
+		nlohmann::json levelsJson = nlohmann::json::object(); // Initialize as empty object
 		
 		// Check for level files in the levels directory
 		std::string levelsDir = resourcePath + "/levels";
+		GameToolbox::log("Looking for level files in {}", levelsDir);
 		
+		int levelsFound = 0;
 		// Get all .txt files in the levels directory
 		for (int i = 1; i <= 22; i++) {
 			std::string levelFile = levelsDir + "/" + std::to_string(i) + ".txt";
 			if (_fu->isFileExist(levelFile)) {
+				GameToolbox::log("Found level file: {}", levelFile);
 				std::string levelData = _fu->getStringFromFile(levelFile);
 				if (!levelData.empty()) {
 					// Remove the H4sIAAAAAAAAA prefix if it exists
-					if (levelData.substr(0, 14) == "H4sIAAAAAAAAA") {
+					if (levelData.length() > 14 && levelData.substr(0, 14) == "H4sIAAAAAAAAA") {
 						levelData = levelData.substr(14);
 					}
 					levelsJson[std::to_string(i)] = levelData;
 					GameToolbox::log("Added level {} to mainLevels.json", i);
+					levelsFound++;
+				} else {
+					GameToolbox::log("Level file is empty: {}", levelFile);
 				}
 			}
 		}
 		
 		// If no levels were found, don't create an empty file
-		if (levelsJson.empty()) {
+		if (levelsFound == 0) {
 			GameToolbox::log("No level files found in levels directory");
 			label->setString("Error: No level files found in levels directory.\nPlease check your Geometry Dash installation.");
 			return;
 		}
 		
 		std::string jsonStr = levelsJson.dump(4);
-		_fu->writeStringToFile(jsonStr, levelsPath);
+		GameToolbox::log("Writing mainLevels.json with {} levels", levelsFound);
+		if (!_fu->writeStringToFile(jsonStr, levelsPath)) {
+			GameToolbox::log("Failed to write mainLevels.json");
+			hasAllFiles = false;
+		}
 	} else {
 		// Validate existing JSON
 		try {
@@ -313,6 +323,7 @@ void ResourcesLoadingLayer::handleLinux() {
 				hasAllFiles = false;
 			} else {
 				nlohmann::json::parse(content);  // Validate JSON format
+				GameToolbox::log("Existing mainLevels.json is valid");
 			}
 		} catch (const std::exception& e) {
 			GameToolbox::log("Invalid JSON file {}: {}", levelsPath, e.what());
