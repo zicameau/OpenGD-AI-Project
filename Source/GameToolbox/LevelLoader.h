@@ -29,14 +29,14 @@ namespace LevelLoader {
     }
     
     inline bool isCompressedFormat(const std::string& content) {
-        if (content.length() <= 14) {
+        if (content.length() <= 13) {
             GameToolbox::log("DEBUG: isCompressedFormat - content too short: {}", content.length());
             return false;
         }
         
-        bool result = content.substr(0, 14) == "H4sIAAAAAAAAA";
+        bool result = content.substr(0, 13) == "H4sIAAAAAAAA";
         GameToolbox::log("DEBUG: isCompressedFormat check: {}, prefix: '{}'", 
-                        result, content.substr(0, 14));
+                        result, content.substr(0, 13));
         return result;
     }
     
