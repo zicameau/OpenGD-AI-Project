@@ -67,6 +67,9 @@
 - [x] Fixed null pointer exception in string construction
 - [x] Added detailed logging for debugging
 - [x] Added missing include for GameToolbox/log.h in GJGameLevel.cpp
+- [x] Fixed member variable name errors in GJGameLevel.cpp (_levelVersion → _gameVersion, _starRequested → _starsRequested)
+- [x] Removed reference to non-existent _attempts member variable
+- [x] Fixed deprecated implicit this capture warnings in CircleWave.cpp
 
 ### Implementation Details
 1. [x] Created a centralized LevelLoader utility to handle level loading consistently
@@ -78,4 +81,5 @@
 ### Next Steps
 - [ ] Test with various level formats and compression types
 - [ ] Add support for custom levels
-- [ ] Improve error messages for users 
+- [ ] Improve error messages for users
+- [ ] Address AX_PLATFORM_LINUX redefinition warning 
