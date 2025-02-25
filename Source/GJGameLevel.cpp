@@ -18,6 +18,7 @@
 
 #include "GJGameLevel.h"
 #include "GameToolbox/conv.h"
+#include "GameToolbox/log.h"
 
 #include "external/base64.h"
 
@@ -56,37 +57,34 @@ GJGameLevel* GJGameLevel::createWithResponse(std::string_view backendResponse)
 	if (levelResponse.contains("2")) level->_levelName = _toString(levelResponse["2"]);
 	if (levelResponse.contains("3")) level->_description = _toString(levelResponse["3"]);
 	if (levelResponse.contains("4")) level->_levelString = _toString(levelResponse["4"]);
-	if (levelResponse.contains("5")) level->_version = GameToolbox::stoi(levelResponse["5"]);
-	if (levelResponse.contains("6")) level->_playerID = GameToolbox::stoi(levelResponse["6"]);
-	if (levelResponse.contains("8")) level->_difficultyDenominator = GameToolbox::stoi(levelResponse["8"]);
-	if (levelResponse.contains("9")) level->_difficultyNumerator = GameToolbox::stoi(levelResponse["9"]);
-	if (levelResponse.contains("10")) level->_downloads = GameToolbox::stoi(levelResponse["10"]);
-	if (levelResponse.contains("11")) level->_setCompletes = GameToolbox::stoi(levelResponse["11"]);
-	if (levelResponse.contains("12")) level->_officialSongID = GameToolbox::stoi(levelResponse["12"]);
-	if (levelResponse.contains("13")) level->_gameVersion = GameToolbox::stoi(levelResponse["13"]);
-	if (levelResponse.contains("14")) level->_likes = GameToolbox::stoi(levelResponse["14"]);
-	if (levelResponse.contains("15")) level->_length = GameToolbox::stoi(levelResponse["15"]);
-	if (levelResponse.contains("16")) level->_dislikes = GameToolbox::stoi(levelResponse["16"]);
-	if (levelResponse.contains("17")) level->_demon = GameToolbox::stoi(levelResponse["17"]);
-	if (levelResponse.contains("18")) level->_stars = GameToolbox::stoi(levelResponse["18"]);
-	if (levelResponse.contains("19")) level->_featureScore = GameToolbox::stoi(levelResponse["19"]);
-	if (levelResponse.contains("25")) level->_auto = GameToolbox::stoi(levelResponse["25"]);
-	if (levelResponse.contains("26")) level->_recordString = _toString(levelResponse["26"]);
-	if (levelResponse.contains("28")) level->_uploadDate = _toString(levelResponse["28"]);
-	if (levelResponse.contains("29")) level->_updateDate = _toString(levelResponse["29"]);
-	if (levelResponse.contains("30")) level->_copiedID = GameToolbox::stoi(levelResponse["30"]);
-	if (levelResponse.contains("35")) level->_songID = GameToolbox::stoi(levelResponse["35"]);
-	if (levelResponse.contains("37")) level->_coins = GameToolbox::stoi(levelResponse["37"]);
-	if (levelResponse.contains("38")) level->_verifiedCoins = GameToolbox::stoi(levelResponse["38"]);
-	if (levelResponse.contains("39")) level->_starsRequested = GameToolbox::stoi(levelResponse["39"]);
-	if (levelResponse.contains("40")) level->_LDM = GameToolbox::stoi(levelResponse["40"]);
-	if (levelResponse.contains("41")) level->_dailyNumber = GameToolbox::stoi(levelResponse["41"]);
-	if (levelResponse.contains("42")) level->_epic = GameToolbox::stoi(levelResponse["42"]);
-	if (levelResponse.contains("43")) level->_demonDifficulty = GameToolbox::stoi(levelResponse["43"]);
-	if (levelResponse.contains("44")) level->_gauntlet = GameToolbox::stoi(levelResponse["44"]);
-	if (levelResponse.contains("45")) level->_objects = GameToolbox::stoi(levelResponse["45"]);
-	if (levelResponse.contains("46")) level->_editorTime = GameToolbox::stoi(levelResponse["46"]);
-	if (levelResponse.contains("47")) level->_editorTimeTotal = GameToolbox::stoi(levelResponse["47"]);
+	if (levelResponse.contains("5")) level->_levelCreator = _toString(levelResponse["5"]);
+	if (levelResponse.contains("6")) level->_difficultyDenominator = GameToolbox::stoi(levelResponse["6"]);
+	if (levelResponse.contains("7")) level->_difficultyNumerator = GameToolbox::stoi(levelResponse["7"]);
+	if (levelResponse.contains("8")) level->_downloads = GameToolbox::stoi(levelResponse["8"]);
+	if (levelResponse.contains("9")) level->_officialSongID = GameToolbox::stoi(levelResponse["9"]);
+	if (levelResponse.contains("10")) level->_gameVersion = GameToolbox::stoi(levelResponse["10"]);
+	if (levelResponse.contains("11")) level->_likes = GameToolbox::stoi(levelResponse["11"]);
+	if (levelResponse.contains("12")) level->_length = GameToolbox::stoi(levelResponse["12"]);
+	if (levelResponse.contains("13")) level->_demon = GameToolbox::stoi(levelResponse["13"]) == 1;
+	if (levelResponse.contains("14")) level->_stars = GameToolbox::stoi(levelResponse["14"]);
+	if (levelResponse.contains("15")) level->_featureScore = GameToolbox::stoi(levelResponse["15"]);
+	if (levelResponse.contains("16")) level->_auto = GameToolbox::stoi(levelResponse["16"]) == 1;
+	if (levelResponse.contains("17")) level->_XORPassword = _toString(levelResponse["17"]);
+	if (levelResponse.contains("18")) level->_uploadDate = _toString(levelResponse["18"]);
+	if (levelResponse.contains("19")) level->_updateDate = _toString(levelResponse["19"]);
+	if (levelResponse.contains("27")) level->_verifiedCoins = GameToolbox::stoi(levelResponse["27"]) == 1;
+	if (levelResponse.contains("35")) level->_songName = _toString(levelResponse["35"]);
+	if (levelResponse.contains("36")) level->_songID = GameToolbox::stoi(levelResponse["36"]);
+	if (levelResponse.contains("37")) level->_sondURL = _toString(levelResponse["37"]);
+	if (levelResponse.contains("38")) level->_levelVersion = GameToolbox::stoi(levelResponse["38"]);
+	if (levelResponse.contains("39")) level->_gameVersion = GameToolbox::stoi(levelResponse["39"]);
+	if (levelResponse.contains("40")) level->_attempts = GameToolbox::stoi(levelResponse["40"]);
+	if (levelResponse.contains("41")) level->_normalPercent = GameToolbox::stof(levelResponse["41"]);
+	if (levelResponse.contains("42")) level->_practicePercent = GameToolbox::stof(levelResponse["42"]);
+	if (levelResponse.contains("43")) level->_likes = GameToolbox::stoi(levelResponse["43"]);
+	if (levelResponse.contains("45")) level->_dislikes = GameToolbox::stoi(levelResponse["45"]);
+	if (levelResponse.contains("46")) level->_stars = GameToolbox::stoi(levelResponse["46"]);
+	if (levelResponse.contains("47")) level->_starRequested = GameToolbox::stoi(levelResponse["47"]) == 1;
 	
 	return level;
 }
