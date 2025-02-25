@@ -28,6 +28,7 @@
 #include "GameToolbox/getTextureString.h"
 #include "platform/FileUtils.h"
 #include <2d/SpriteBatchNode.h>
+#include "GameToolbox/LevelLoader.h"
 
 USING_NS_AX;
 
@@ -73,18 +74,10 @@ void BaseGameLayer::loadLevel()
 {
 	// TODO: find a modern gzip decompress library or write own gzip decompress
 
-	std::string levelStr = _level->_levelString;
+	std::string levelStr = LevelLoader::getLevelString(_level);
 	if (levelStr.empty())
-	{
-		nlohmann::json file =
-			nlohmann::json::parse(FileUtils::getInstance()->getStringFromFile("Custom/mainLevels.json"));
-		std::string levelID = std::to_string(_level->_levelID);
-
-		if (!file.contains(levelID))
-			return; // check if our level actually exists in mainlevels list before doing anything
-
-		levelStr = fmt::format("H4sIAAAAAAAAA{}", file.at(levelID).get<std::string>());
-	}
+		return; // No level data found
+		
 	levelStr = GJGameLevel::decompressLvlStr(levelStr);
 	{
 		auto s = BenchmarkTimer("load level");

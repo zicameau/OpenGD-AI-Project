@@ -47,6 +47,7 @@
 #include "GameToolbox/math.h"
 #include "GameToolbox/conv.h"
 #include "GameToolbox/nodes.h"
+#include "GameToolbox/LevelLoader.h"
 
 
 USING_NS_AX;
@@ -636,12 +637,13 @@ bool PlayLayer::init(GJGameLevel* level)
 	_player2->setSecondaryColor({0, 255, 255});
 
 	// std::string levelStr = FileUtils::getInstance()->getStringFromFile("level.txt");
-	std::string levelStr = level->_levelString;
-
+	std::string levelStr = LevelLoader::getLevelString(level);
 	if (levelStr.empty())
 	{
-		nlohmann::json file = nlohmann::json::parse(FileUtils::getInstance()->getStringFromFile("Custom/mainLevels.json"));
-		levelStr = fmt::format("H4sIAAAAAAAAA{}", file[std::to_string(level->_levelID)].get<std::string>());
+		auto loadfailedstr = Label::createWithBMFont(GameToolbox::getTextureString("bigFont.fnt"), "Level Not Found!");
+		loadfailedstr->setPosition({winSize.width / 2, winSize.height / 2});
+		addChild(loadfailedstr, 128);
+		return false;
 	}
 
 	// scope based timer
