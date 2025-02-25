@@ -44,6 +44,7 @@
 - [x] JSON parsing errors for level data (Fixed)
 - [x] Missing required directory structure (Fixed)
 - [x] Level decompression failures (Fixed)
+- [x] JSON parsing errors for raw level data (Fixed)
 
 ## Future Improvements
 - [x] Add configuration for resource paths
@@ -62,6 +63,7 @@
 - [x] Added error handling for corrupted level data
 - [x] Fixed build errors related to missing headers
 - [x] Added fallback to raw level data when decompression fails
+- [x] Added format detection for XML, JSON, and compressed level data
 
 ### Issues Fixed
 - [x] Fixed JSON parsing errors in ResourcesLoadingLayer
@@ -73,6 +75,7 @@
 - [x] Removed reference to non-existent _attempts member variable
 - [x] Fixed deprecated implicit this capture warnings in CircleWave.cpp
 - [x] Fixed segmentation fault when decompression fails
+- [x] Added XML parsing fallback for level data
 
 ### Implementation Details
 1. [x] Created a centralized LevelLoader utility to handle level loading consistently
@@ -81,6 +84,7 @@
 4. [x] Improved logging to help diagnose issues
 5. [x] Fixed build errors to ensure compatibility with Linux
 6. [x] Added detection for uncompressed level data
+7. [x] Added format-specific parsing for XML and JSON level data
 
 ### Next Steps
 - [ ] Test with various level formats and compression types

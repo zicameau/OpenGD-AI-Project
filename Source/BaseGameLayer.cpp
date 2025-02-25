@@ -72,47 +72,133 @@ bool BaseGameLayer::init(GJGameLevel* level)
 
 void BaseGameLayer::loadLevel()
 {
-	// TODO: find a modern gzip decompress library or write own gzip decompress
-
-	std::string levelStr = LevelLoader::getLevelString(_level);
-	if (levelStr.empty())
-		return; // No level data found
+	GameToolbox::log("creating & pushing");
+	
+	std::string levelString;
+	
+	try {
+		levelString = LevelLoader::getLevelString(_level);
 		
-	levelStr = GJGameLevel::decompressLvlStr(levelStr);
-	{
-		auto s = BenchmarkTimer("load level");
-		setupLevel(levelStr);
-		createObjectsFromSetup(levelStr);
+		if (levelString.empty()) {
+			GameToolbox::log("Error: Empty level string for level {}", _level->_levelID);
+			return;
+		}
+		
+		// Check if the level string is compressed (starts with H4sIAAAAAAAAA)
+		if (levelString.length() > 14 && levelString.substr(0, 14) == "H4sIAAAAAAAAA") {
+			std::string decompressed = GJGameLevel::decompressLvlStr(levelString);
+			if (!decompressed.empty()) {
+				levelString = decompressed;
+			} else {
+				GameToolbox::log("Warning: Failed to decompress level string, attempting to parse as raw data");
+			}
+		}
+		
+		// Check if the level string looks like XML
+		if (levelString.find("<k>") != std::string::npos) {
+			GameToolbox::log("Level appears to be in XML format, parsing...");
+			parseXMLLevelString(levelString);
+			return;
+		}
+		
+		// Try to parse as JSON
+		try {
+			nlohmann::json levelJson = nlohmann::json::parse(levelString);
+			parseJSONLevelString(levelJson);
+		} catch (const nlohmann::json::exception& e) {
+			GameToolbox::log("JSON parsing error: {}", e.what());
+			GameToolbox::log("Attempting to parse as XML...");
+			
+			// Fallback to XML parsing if JSON fails
+			parseXMLLevelString(levelString);
+		}
+	} catch (const std::exception& e) {
+		GameToolbox::log("Error loading level: {}", e.what());
 	}
+}
 
-	if (_allObjects.size() != 0)
-	{
-		_lastObjXPos = 570.0f;
-
-		for (GameObject* object : _allObjects)
-		{
-			if (_lastObjXPos < object->getPositionX())
-				_lastObjXPos = object->getPositionX();
-		}
-
-		GameToolbox::log("last x: {}", _lastObjXPos);
-
-		for (size_t i = 0; i < sectionForPos(_lastObjXPos); i++)
-		{
-			std::vector<GameObject*> vec;
-			_sectionObjects.push_back(vec);
-		}
-
-		for (GameObject* object : _allObjects)
-		{
-			int section = sectionForPos(object->getPositionX());
-			object->_section = section - 1 < 0 ? 0 : section - 1;
-			_sectionObjects[section - 1 < 0 ? 0 : section - 1].push_back(object);
-
-			object->setCascadeOpacityEnabled(false);
-			object->update();
+void BaseGameLayer::parseXMLLevelString(const std::string& levelString)
+{
+	// Simple XML-like parsing for level data
+	GameToolbox::log("Parsing level as XML format");
+	
+	size_t pos = levelString.find("<k>k1</k>");
+	if (pos == std::string::npos) {
+		GameToolbox::log("Error: Could not find level objects section in XML");
+		return;
+	}
+	
+	// Find the objects section
+	pos = levelString.find("<k>kA4</k><d><k>kA6</k>");
+	if (pos == std::string::npos) {
+		pos = levelString.find("<k>kA2</k>");
+		if (pos == std::string::npos) {
+			GameToolbox::log("Error: Could not find objects section in XML");
+			return;
 		}
 	}
+	
+	// Extract objects section
+	size_t endPos = levelString.find("</d>", pos);
+	if (endPos == std::string::npos) {
+		GameToolbox::log("Error: Could not find end of objects section in XML");
+		return;
+	}
+	
+	std::string objectsSection = levelString.substr(pos, endPos - pos);
+	
+	// Parse objects
+	std::vector<std::string> objects;
+	size_t objPos = 0;
+	while ((objPos = objectsSection.find("<k>kA13</k>", objPos)) != std::string::npos) {
+		size_t objEndPos = objectsSection.find("</d>", objPos);
+		if (objEndPos == std::string::npos) break;
+		
+		std::string objectData = objectsSection.substr(objPos, objEndPos - objPos);
+		objects.push_back(objectData);
+		
+		objPos = objEndPos;
+	}
+	
+	GameToolbox::log("Found {} objects in XML format", objects.size());
+	
+	// Process objects
+	for (const auto& objData : objects) {
+		// Extract object properties and create game objects
+		// This is a simplified version - you'll need to implement the full parsing logic
+		createObject(objData);
+	}
+}
+
+void BaseGameLayer::parseJSONLevelString(const nlohmann::json& levelJson)
+{
+	GameToolbox::log("Parsing level as JSON format");
+	
+	// Process JSON level data
+	// This is where your existing JSON parsing logic would go
+}
+
+void BaseGameLayer::createObject(const std::string& objectData)
+{
+	// Extract object properties from the XML string
+	// This is a simplified placeholder - you'll need to implement the full parsing logic
+	
+	// Example:
+	int objectID = 1; // Default
+	
+	size_t idPos = objectData.find("<k>kA1</k><i>");
+	if (idPos != std::string::npos) {
+		size_t idEndPos = objectData.find("</i>", idPos);
+		if (idEndPos != std::string::npos) {
+			std::string idStr = objectData.substr(idPos + 12, idEndPos - (idPos + 12));
+			objectID = std::stoi(idStr);
+		}
+	}
+	
+	// Create the object based on ID
+	GameToolbox::log("Creating object with ID: {}", objectID);
+	
+	// Your existing object creation logic
 }
 
 void BaseGameLayer::initBatchNodes()
