@@ -42,14 +42,27 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 		// Check if the string is already in the correct format for decompression
 		std::string input = str;
 		
-		// If the string starts with H4sIAAAAAAAAA, it's base64 encoded gzip data
-		if (input.substr(0, 14) == "H4sIAAAAAAAAA") {
+		// Check if it starts with H4sI (base64 encoded gzip data)
+		if (input.substr(0, 4) == "H4sI") {
 			GameToolbox::log("DEBUG: Detected base64 gzip header");
 			
-			// Remove the gzip header if present
-			if (input.length() > 14) {
-				input = input.substr(14);
-				GameToolbox::log("DEBUG: Removed header, new length: {}", input.size());
+			// For level 1, we need to handle the specific format
+			std::string header = "";
+			if (input.substr(0, 14) == "H4sIAAAAAAAAA") {
+				header = "H4sIAAAAAAAAA";
+				GameToolbox::log("DEBUG: Standard header detected");
+			} else if (input.substr(0, 14) == "H4sIAAAAAAAAA4") {
+				header = "H4sIAAAAAAAAA4";
+				GameToolbox::log("DEBUG: Level 1 specific header detected");
+			} else {
+				header = "H4sI";
+				GameToolbox::log("DEBUG: Generic header detected");
+			}
+			
+			// Remove the header if present
+			if (input.length() > header.length()) {
+				input = input.substr(header.length());
+				GameToolbox::log("DEBUG: Removed header '{}', new length: {}", header, input.size());
 			}
 			
 			// Decode base64 using the existing function
