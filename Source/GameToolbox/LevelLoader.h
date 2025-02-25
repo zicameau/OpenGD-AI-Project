@@ -29,16 +29,9 @@ namespace LevelLoader {
     }
     
     inline bool isCompressedFormat(const std::string& content) {
-        if (content.length() < 4) {
-            GameToolbox::log("DEBUG: isCompressedFormat - content too short: {}", content.length());
-            return false;
-        }
-        
-        // Check if it starts with "H4sI" which is the beginning of base64 encoded gzip data
-        bool result = content.substr(0, 4) == "H4sI";
-        GameToolbox::log("DEBUG: isCompressedFormat check: {}, prefix: '{}'", 
-                        result, content.substr(0, 4));
-        return result;
+        // Assume all level files are compressed
+        GameToolbox::log("DEBUG: Assuming all levels are compressed");
+        return true;
     }
     
     inline std::string getLevelString(GJGameLevel* level) {

@@ -39,81 +39,52 @@ std::string GJGameLevel::decompressLvlStr(const std::string& str) {
 	GameToolbox::log("First 20 chars: {}", str.substr(0, 20));
 	
 	try {
-		// Check if the string is already in the correct format for decompression
-		std::string input = str;
+		// Assume all level files are base64-encoded gzipped data
 		
-		// Check if it starts with H4sI (base64 encoded gzip data)
-		if (input.substr(0, 4) == "H4sI") {
-			GameToolbox::log("DEBUG: Detected base64 gzip header");
-			
-			// Decode base64 using the existing function
-			GameToolbox::log("DEBUG: Decoding base64...");
-			std::string decoded = base64_decode(input);
-			if (decoded.empty()) {
-				GameToolbox::log("ERROR: Base64 decoding failed!");
-				return "";
-			}
-			
-			GameToolbox::log("DEBUG: Base64 decode successful, decoded length: {}", decoded.size());
-			
-			// Use a more conservative memory hint for decompression
-			// Start with a smaller multiplier and retry with larger if needed
-			unsigned char* inflated = nullptr;
-			ssize_t inflatedLen = 0;
-			
-			// Try with progressively larger output buffer sizes
-			for (int multiplier = 2; multiplier <= 20; multiplier += 2) {
-				GameToolbox::log("DEBUG: Trying decompression with multiplier {}", multiplier);
-				
-				// Free previous attempt if any
-				if (inflated) {
-					free(inflated);
-					inflated = nullptr;
-				}
-				
-				// Try to decompress
-				GameToolbox::log("DEBUG: Calling inflateMemoryWithHint...");
-				inflatedLen = ax::ZipUtils::inflateMemoryWithHint(
-					(unsigned char*)decoded.data(), 
-					decoded.size(), 
-					&inflated, 
-					decoded.size() * multiplier
-				);
-				
-				GameToolbox::log("DEBUG: After inflateMemoryWithHint call");
-				
-				// If successful, break out of the loop
-				if (inflated && inflatedLen > 0) {
-					GameToolbox::log("DEBUG: Decompression successful with multiplier {}", multiplier);
-					break;
-				}
-				
-				GameToolbox::log("DEBUG: Decompression failed with multiplier {}, trying larger buffer", multiplier);
-			}
-			
-			// Check if any of the attempts succeeded
-			if (!inflated || inflatedLen <= 0) {
-				GameToolbox::log("ERROR: All decompression attempts failed");
-				return "";
-			}
-			
-			GameToolbox::log("DEBUG: Decompression successful, inflatedLen: {}", inflatedLen);
-			
-			// Convert to string
-			std::string result(reinterpret_cast<char*>(inflated), inflatedLen);
-			GameToolbox::log("DEBUG: Converted to string, length: {}", result.size());
-			GameToolbox::log("First 50 chars of result: {}", result.substr(0, 50));
-			
-			free(inflated); // Free the inflated buffer
-			GameToolbox::log("DEBUG: Freed inflated buffer");
-			
-			GameToolbox::log("=== DECOMPRESSION END ===");
-			return result;
-		} else {
-			GameToolbox::log("DEBUG: Input is not in expected compressed format");
-			GameToolbox::log("=== DECOMPRESSION END ===");
-			return str; // Return the original string if it's not in the expected format
+		// Decode base64
+		GameToolbox::log("DEBUG: Decoding base64...");
+		std::string decoded = base64_decode(str);
+		if (decoded.empty()) {
+			GameToolbox::log("ERROR: Base64 decoding failed!");
+			return "";
 		}
+		
+		GameToolbox::log("DEBUG: Base64 decode successful, decoded length: {}", decoded.size());
+		
+		// Decompress the data
+		unsigned char* inflated = nullptr;
+		ssize_t inflatedLen = 0;
+		
+		GameToolbox::log("DEBUG: Attempting decompression...");
+		inflatedLen = ax::ZipUtils::inflateMemory(
+			(unsigned char*)decoded.data(), 
+			decoded.size(), 
+			&inflated
+		);
+		
+		if (!inflated || inflatedLen <= 0) {
+			GameToolbox::log("ERROR: Decompression failed, inflated={}, inflatedLen={}", 
+							(inflated ? "not null" : "null"), inflatedLen);
+			if (inflated) free(inflated);
+			return "";
+		}
+		
+		GameToolbox::log("DEBUG: Decompression successful, inflatedLen: {}", inflatedLen);
+		
+		// Convert to string
+		std::string result(reinterpret_cast<char*>(inflated), inflatedLen);
+		GameToolbox::log("DEBUG: Converted to string, length: {}", result.size());
+		if (result.size() > 50) {
+			GameToolbox::log("First 50 chars of result: {}", result.substr(0, 50));
+		} else {
+			GameToolbox::log("Full result: {}", result);
+		}
+		
+		free(inflated); // Free the inflated buffer
+		GameToolbox::log("DEBUG: Freed inflated buffer");
+		
+		GameToolbox::log("=== DECOMPRESSION END ===");
+		return result;
 	} catch (const std::exception& e) {
 		GameToolbox::log("EXCEPTION during decompression: {}", e.what());
 		GameToolbox::log("=== DECOMPRESSION END ===");
