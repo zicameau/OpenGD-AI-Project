@@ -45,6 +45,7 @@
 - [x] Missing required directory structure (Fixed)
 - [x] Level decompression failures (Fixed)
 - [x] JSON parsing errors for raw level data (Fixed)
+- [x] Missing function declarations in BaseGameLayer (Fixed)
 
 ## Future Improvements
 - [x] Add configuration for resource paths
@@ -64,6 +65,7 @@
 - [x] Fixed build errors related to missing headers
 - [x] Added fallback to raw level data when decompression fails
 - [x] Added format detection for XML, JSON, and compressed level data
+- [x] Added proper function declarations in header files
 
 ### Issues Fixed
 - [x] Fixed JSON parsing errors in ResourcesLoadingLayer
@@ -76,6 +78,7 @@
 - [x] Fixed deprecated implicit this capture warnings in CircleWave.cpp
 - [x] Fixed segmentation fault when decompression fails
 - [x] Added XML parsing fallback for level data
+- [x] Fixed missing function declarations in BaseGameLayer.h
 
 ### Implementation Details
 1. [x] Created a centralized LevelLoader utility to handle level loading consistently
@@ -85,6 +88,7 @@
 5. [x] Fixed build errors to ensure compatibility with Linux
 6. [x] Added detection for uncompressed level data
 7. [x] Added format-specific parsing for XML and JSON level data
+8. [x] Added proper header declarations for all new functions
 
 ### Next Steps
 - [ ] Test with various level formats and compression types

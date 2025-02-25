@@ -97,6 +97,10 @@ protected:
 
 	EffectManager* _effectManager;
 
+	void parseXMLLevelString(const std::string& levelString);
+	void parseJSONLevelString(const nlohmann::json& levelJson);
+	void createObject(const std::string& objectData);
+
 public:
 
 	GJGameLevel* _level;

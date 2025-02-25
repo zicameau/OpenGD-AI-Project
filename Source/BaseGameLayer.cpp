@@ -72,49 +72,20 @@ bool BaseGameLayer::init(GJGameLevel* level)
 
 void BaseGameLayer::loadLevel()
 {
-	GameToolbox::log("creating & pushing");
-	
-	std::string levelString;
-	
-	try {
-		levelString = LevelLoader::getLevelString(_level);
+	// TODO: find a modern gzip decompress library or write own gzip decompress
+
+	std::string levelStr = LevelLoader::getLevelString(_level);
+	if (levelStr.empty())
+		return; // No level data found
 		
-		if (levelString.empty()) {
-			GameToolbox::log("Error: Empty level string for level {}", _level->_levelID);
-			return;
-		}
-		
-		// Check if the level string is compressed (starts with H4sIAAAAAAAAA)
-		if (levelString.length() > 14 && levelString.substr(0, 14) == "H4sIAAAAAAAAA") {
-			std::string decompressed = GJGameLevel::decompressLvlStr(levelString);
-			if (!decompressed.empty()) {
-				levelString = decompressed;
-			} else {
-				GameToolbox::log("Warning: Failed to decompress level string, attempting to parse as raw data");
-			}
-		}
-		
-		// Check if the level string looks like XML
-		if (levelString.find("<k>") != std::string::npos) {
-			GameToolbox::log("Level appears to be in XML format, parsing...");
-			parseXMLLevelString(levelString);
-			return;
-		}
-		
-		// Try to parse as JSON
-		try {
-			nlohmann::json levelJson = nlohmann::json::parse(levelString);
-			parseJSONLevelString(levelJson);
-		} catch (const nlohmann::json::exception& e) {
-			GameToolbox::log("JSON parsing error: {}", e.what());
-			GameToolbox::log("Attempting to parse as XML...");
-			
-			// Fallback to XML parsing if JSON fails
-			parseXMLLevelString(levelString);
-		}
-	} catch (const std::exception& e) {
-		GameToolbox::log("Error loading level: {}", e.what());
+	levelStr = GJGameLevel::decompressLvlStr(levelStr);
+	{
+		auto s = BenchmarkTimer("load level");
+		setupLevel(levelStr);
+		createObjectsFromSetup(levelStr);
 	}
+
+	// ... existing code ...
 }
 
 void BaseGameLayer::parseXMLLevelString(const std::string& levelString)
