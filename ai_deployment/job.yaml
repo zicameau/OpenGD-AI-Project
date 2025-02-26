@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neat-training-job
+spec:
+  parallelism: 100  # Run 100 parallel instances
+  completions: 1000
+  template:
+    spec:
+      containers:
+      - name: ai-trainer
+        image: rowdeil/neat-geometry-dash:latest
+        resources:
+          limits:
+            nvidia.com/gpu: 1  # Request GPU access
+            memory: "4Gi"
+            cpu: "2"
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+        env:
+        - name: DISPLAY
+          value: ":99"
+        - name: PARALLEL_INSTANCES
+          value: "4"  # Number of parallel game instances per container
+      nodeSelector:
+        nvidia.com/gpu: "present"  # Schedule on GPU nodes
+      restartPolicy: Never
