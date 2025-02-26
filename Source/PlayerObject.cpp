@@ -263,7 +263,7 @@ void PlayerObject::update(float dt)
 			if (_particles1Activated && !getActionByTag(2))
 			{
 				Sequence* action = Sequence::create(
-					DelayTime::create(0.06f), CallFunc::create([=]() {
+					DelayTime::create(1.f / 16.5f), CallFunc::create([&]() {
 						if (_particles1Activated) dragEffect1->pauseEmissions();
 						_particles1Activated = false;
 					}),
@@ -814,7 +814,9 @@ topCollision:
 		}
 	}
 death:
-	if (playerRectI.intersectsRect(rect)) static_cast<PlayLayer*>(getPlayLayer())->destroyPlayer(this);
+	if (playerRectI.intersectsRect(rect) && !obj->_isTrigger) {
+		static_cast<PlayLayer*>(getPlayLayer())->destroyPlayer(this);
+	}
 }
 
 void PlayerObject::setGamemode(PlayerGamemode mode)
@@ -889,18 +891,18 @@ void PlayerObject::checkSnapJumpToObject(GameObject* obj)
 			float upOneGap = 90.0;
 			float xShift = 1.0;
 
-			if (m_playerSpeed == 0.9)
+			if (m_playerSpeed == 0.9f)
 			{
 				/* //if (m_vehicleSize == 1.0) {
 					upOneGap = 120.0;
 				//} */
 			}
-			else if (m_playerSpeed == 0.7)
+			else if (m_playerSpeed == 0.7f)
 			{
 				upTwoGap = 60.0;
 				downOneGap = 120.0;
 			}
-			else if (m_playerSpeed == 1.1)
+			else if (m_playerSpeed == 1.1f)
 			{
 				unknownUse = 0.0;
 				xShift = 2.00;
@@ -910,7 +912,7 @@ void PlayerObject::checkSnapJumpToObject(GameObject* obj)
 					upOneGap = 150.0;
 				//} */
 			}
-			else if (m_playerSpeed == 1.3)
+			else if (m_playerSpeed == 1.3f)
 			{
 				unknownUse = 0.0;
 				xShift = 2.00;
