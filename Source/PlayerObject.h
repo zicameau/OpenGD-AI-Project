@@ -100,6 +100,8 @@ class PlayerObject : public GameObject
 
 	GameObject* m_snappedObject;
 
+	void writePositionToFile();
+
   public:
 
   double m_dXVel = 5.770002;

@@ -28,6 +28,7 @@
 #include "UTF8.h"
 #include "GameToolbox/log.h"
 #include "GameToolbox/math.h"
+#include "platform/FileUtils.h"
 
 USING_NS_AX;
 
@@ -354,6 +355,31 @@ void PlayerObject::update(float dt)
 
 	_touchedRingObject = nullptr;
 	_touchedPadObject = nullptr;
+
+	// Write player position to file (every few frames to avoid performance issues)
+	static int frameCounter = 0;
+	if (frameCounter++ % 3 == 0) {  // Only write every 3 frames
+		writePositionToFile();
+	}
+}
+
+void PlayerObject::writePositionToFile()
+{
+	// Get writable path from FileUtils
+	auto fu = ax::FileUtils::getInstance();
+	auto wp = fu->getWritablePath();
+	std::string filePath = wp + "player_position.txt";
+	
+	// Create a simple string with position data
+	std::string posData = fmt::format("{:.2f},{:.2f},{:.2f},{:d},{:d}\n", 
+		getPositionX(), 
+		getPositionY(),
+		m_dYVel,
+		m_bOnGround ? 1 : 0,
+		m_bIsDead ? 1 : 0);
+	
+	// Write to file
+	fu->writeStringToFile(posData, filePath);
 }
 
 void PlayerObject::updateShipRotation(float dt)
