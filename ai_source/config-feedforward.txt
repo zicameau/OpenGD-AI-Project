@@ -5,7 +5,7 @@ reset_on_extinction = False
 fitness_criterion = max
 
 [DefaultGenome]
-num_inputs = 402
+num_inputs = 7
 num_hidden = 10
 num_outputs = 1
 feed_forward = True
