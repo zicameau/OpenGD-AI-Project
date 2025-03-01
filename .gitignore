@@ -44,6 +44,8 @@ run.bat.txt
 *build
 build-docs/
 bin
+venv
+ai_source/logs
 out
 /proj.android/.idea/*
 /proj.android/app/.cxx/*

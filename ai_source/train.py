@@ -16,10 +16,11 @@ import platform
 import win32gui
 import win32con
 import win32api
-import keyboard
 import logging
 from collections import deque
 from datetime import datetime
+import win32ui
+from PIL import Image
 
 # Set up logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
@@ -122,47 +123,159 @@ def update_position_history(position):
         position_history.append(position)
 
 def prepare_inputs():
-    """Convert position history to neural network inputs"""
-    if not position_history:
+    """Prepare inputs for the neural network"""
+    if len(position_history) < 2:
         return None
         
-    # Create input array
-    inputs = []
+    # Get current and previous positions
+    current = position_history[0]
+    prev = position_history[1]
     
-    # Add current position data
-    current = position_history[-1]
-    inputs.extend([
+    # Calculate velocity
+    dx = current['x'] - prev['x']
+    dy = current['y'] - prev['y']
+    
+    # Prepare inputs (make sure this matches the number in config-feedforward.txt)
+    inputs = [
         current['x'] / 1000.0,  # Normalize x position
-        current['y'] / 500.0,   # Normalize y position
+        current['y'] / 1000.0,  # Normalize y position
         current['y_vel'] / 20.0,  # Normalize y velocity
-        1.0 if current['on_ground'] else 0.0
-    ])
-    
-    # Add historical data (differences from current position)
-    for i in range(len(position_history) - 2, -1, -1):
-        if i >= 0:
-            prev = position_history[i]
-            inputs.extend([
-                (current['x'] - prev['x']) / 50.0,  # Normalized x difference
-                (current['y'] - prev['y']) / 50.0,  # Normalized y difference
-                (current['y_vel'] - prev['y_vel']) / 10.0  # Normalized velocity difference
-            ])
-        else:
-            # Padding if not enough history
-            inputs.extend([0.0, 0.0, 0.0])
+        1.0 if current['on_ground'] else 0.0,  # Ground state
+        dx / 10.0,  # x velocity
+        dy / 10.0,  # y velocity
+        1.0 if current['is_dead'] else 0.0  # Death state
+    ]
     
     return inputs
 
+def terminate_all_game_processes():
+    """Find and terminate all running OpenGD processes"""
+    try:
+        logger.info("Searching for OpenGD processes to terminate...")
+        found_processes = 0
+        
+        for proc in psutil.process_iter(['pid', 'name']):
+            # Look for OpenGD processes
+            if 'OpenGD' in proc.info['name']:
+                found_processes += 1
+                pid = proc.info['pid']
+                logger.info(f"Found OpenGD process (PID: {pid}, Name: {proc.info['name']})")
+                
+                try:
+                    process = psutil.Process(pid)
+                    logger.info(f"Attempting to terminate process {pid}...")
+                    process.terminate()
+                    
+                    # Wait for termination with timeout
+                    logger.info(f"Waiting for process {pid} to terminate...")
+                    process.wait(timeout=3)
+                    logger.info(f"Process {pid} terminated successfully")
+                    
+                except psutil.NoSuchProcess as e:
+                    logger.warning(f"Process {pid} no longer exists: {e}")
+                except psutil.AccessDenied as e:
+                    logger.warning(f"Access denied when terminating process {pid}: {e}")
+                    logger.info(f"Attempting to kill process {pid} forcefully...")
+                    try:
+                        process.kill()
+                        logger.info(f"Process {pid} killed forcefully")
+                    except Exception as kill_error:
+                        logger.error(f"Failed to kill process {pid}: {kill_error}")
+                except psutil.TimeoutExpired as e:
+                    logger.warning(f"Timeout waiting for process {pid} to terminate: {e}")
+                    logger.info(f"Attempting to kill process {pid} forcefully...")
+                    try:
+                        process.kill()
+                        logger.info(f"Process {pid} killed forcefully")
+                    except Exception as kill_error:
+                        logger.error(f"Failed to kill process {pid}: {kill_error}")
+                except Exception as e:
+                    logger.error(f"Unexpected error terminating process {pid}: {e}")
+                    logger.info(f"Attempting to kill process {pid} forcefully...")
+                    try:
+                        process.kill()
+                        logger.info(f"Process {pid} killed forcefully")
+                    except Exception as kill_error:
+                        logger.error(f"Failed to kill process {pid}: {kill_error}")
+        
+        if found_processes == 0:
+            logger.info("No OpenGD processes found to terminate")
+        else:
+            logger.info(f"Attempted to terminate {found_processes} OpenGD processes")
+        
+        # Double-check if any OpenGD processes are still running
+        remaining = 0
+        for proc in psutil.process_iter(['pid', 'name']):
+            if 'OpenGD' in proc.info['name']:
+                remaining += 1
+                logger.warning(f"OpenGD process still running after termination attempts: PID {proc.info['pid']}")
+        
+        if remaining > 0:
+            logger.warning(f"{remaining} OpenGD processes still running after termination attempts")
+            
+            # Last resort: use taskkill on Windows
+            if platform.system() == 'Windows':
+                logger.info("Attempting to use taskkill to forcefully terminate remaining processes")
+                try:
+                    subprocess.run(['taskkill', '/F', '/IM', 'OpenGD.exe'], 
+                                  stdout=subprocess.PIPE, 
+                                  stderr=subprocess.PIPE)
+                    logger.info("taskkill command executed")
+                except Exception as e:
+                    logger.error(f"Error using taskkill: {e}")
+        else:
+            logger.info("All OpenGD processes successfully terminated")
+        
+        # Small delay to ensure processes are fully terminated
+        logger.info("Waiting 2 seconds for processes to fully terminate...")
+        time.sleep(2)
+        return True
+    except Exception as e:
+        logger.error(f"Error in terminate_all_game_processes: {e}")
+        return False
+
 def start_game():
-    """Start the OpenGD game"""
+    """Start the OpenGD game after ensuring no other instances are running"""
+    # First terminate any existing game processes
+    logger.info("Terminating any existing OpenGD processes before starting new game...")
+    terminate_all_game_processes()
+    
     logger.info(f"Starting OpenGD from {GAME_PATH}...")
     try:
-        process = subprocess.Popen(GAME_PATH, shell=True)
+        # Get the directory containing the game executable
+        game_dir = os.path.dirname(GAME_PATH)
+        executable = os.path.basename(GAME_PATH)
+        
+        # Store current directory to return to later
+        original_dir = os.getcwd()
+        
+        # Change to game directory
+        os.chdir(game_dir)
+        logger.info(f"Changed to game directory: {game_dir}")
+        
+        # Start the game using just the executable name
+        logger.info(f"Launching executable: {executable}")
+        process = subprocess.Popen(executable, shell=True)
+        logger.info(f"Game process started with PID: {process.pid if hasattr(process, 'pid') else 'unknown'}")
+        
+        logger.info("Waiting 5 seconds for game to initialize...")
         time.sleep(5)  # Wait for game to start
+        
+        # Change back to original directory
+        os.chdir(original_dir)
+        logger.info(f"Changed back to original directory: {original_dir}")
+        
         logger.info("Game started successfully")
         return process
     except Exception as e:
         logger.error(f"Failed to start game: {e}")
+        # Make sure we return to original directory even if there's an error
+        try:
+            if 'original_dir' in locals():
+                os.chdir(original_dir)
+                logger.info(f"Changed back to original directory after error: {original_dir}")
+        except Exception as dir_error:
+            logger.error(f"Failed to change back to original directory: {dir_error}")
         return None
 
 def reset_game():
@@ -182,139 +295,302 @@ def log_decision(inputs, output, should_jump, position):
         logger.debug(f"Network inputs: {inputs}")
         logger.debug(f"Network output: {output[0]:.4f}, Decision: {'JUMP' if should_jump else 'NO JUMP'}")
 
-def evaluate_genome(genome, config):
-    """Evaluate a single genome"""
-    genome_id = genome.key
-    logger.info(f"Evaluating genome {genome_id}")
-    
-    # Create neural network from genome
-    net = neat.nn.FeedForwardNetwork.create(genome, config)
-    
-    # Start game
-    game_process = start_game()
-    if game_process is None:
-        logger.error("Failed to start game, skipping genome evaluation")
-        return 0
-    
-    # Clear position history
-    position_history.clear()
-    
-    # Track fitness metrics
-    max_x = 0
-    start_time = time.time()
-    jumps = 0
-    last_jump_time = 0
-    
-    # Create a log for this genome's run
-    genome_log = []
-    
+def capture_window_image(hwnd):
+    """Capture a screenshot of the specified window"""
     try:
-        # Main game loop
-        while True:
-            # Check for timeout
-            current_time = time.time()
-            elapsed = current_time - start_time
-            if elapsed > TIMEOUT_SECONDS:
-                logger.info(f"Timeout reached for genome {genome_id} after {elapsed:.2f} seconds")
-                break
-                
-            # Get player position
-            position = get_player_position()
-            if position is None:
-                time.sleep(0.05)
-                continue
-                
-            # Update history
-            update_position_history(position)
-            
-            # Check if player is dead
-            if position['is_dead']:
-                logger.info(f"Player died at x={position['x']:.2f}, y={position['y']:.2f}")
-                break
-                
-            # Update max_x for fitness
-            if position['x'] > max_x:
-                max_x = position['x']
-                
-            # Prepare inputs for neural network
-            inputs = prepare_inputs()
-            if inputs is None or len(position_history) < 2:  # Need at least 2 positions for meaningful input
-                continue
-                
-            # Get neural network output
-            output = net.activate(inputs)
-            
-            # Decide whether to jump
-            should_jump = output[0] > 0.5
-            
-            # Log decision details
-            log_decision(inputs, output, should_jump, position)
-            
-            # Record this frame's data
-            genome_log.append({
-                'time': elapsed,
-                'x': position['x'],
-                'y': position['y'],
-                'y_vel': position['y_vel'],
-                'on_ground': position['on_ground'],
-                'output': output[0],
-                'jumped': False
-            })
-            
-            # Execute jump if needed (with cooldown to prevent spam)
-            if should_jump and current_time - last_jump_time > 0.2:
-                keyboard.press_and_release('space')
-                jumps += 1
-                last_jump_time = current_time
-                logger.debug(f"Jump executed at x={position['x']:.2f}, y={position['y']:.2f}")
-                # Mark this jump in the log
-                genome_log[-1]['jumped'] = True
-                
-            time.sleep(0.05)  # Small delay to prevent CPU overuse
-            
-    except Exception as e:
-        logger.error(f"Error during evaluation of genome {genome_id}: {e}")
-    finally:
+        # Get window dimensions
+        left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+        width = right - left
+        height = bottom - top
+        
+        # Create device context
+        hwnd_dc = win32gui.GetWindowDC(hwnd)
+        mfc_dc = win32ui.CreateDCFromHandle(hwnd_dc)
+        save_dc = mfc_dc.CreateCompatibleDC()
+        
+        # Create bitmap
+        save_bitmap = win32ui.CreateBitmap()
+        save_bitmap.CreateCompatibleBitmap(mfc_dc, width, height)
+        save_dc.SelectObject(save_bitmap)
+        
+        # Copy screen to bitmap
+        save_dc.BitBlt((0, 0), (width, height), mfc_dc, (0, 0), win32con.SRCCOPY)
+        
+        # Convert to numpy array
+        bmpinfo = save_bitmap.GetInfo()
+        bmpstr = save_bitmap.GetBitmapBits(True)
+        img = np.frombuffer(bmpstr, dtype=np.uint8)
+        img.shape = (bmpinfo['bmHeight'], bmpinfo['bmWidth'], 4)
+        img = img[:, :, :3]  # Remove alpha channel
+        
         # Clean up
-        try:
-            game_process.terminate()
-            logger.info("Game process terminated")
-            time.sleep(1)
-        except Exception as e:
-            logger.error(f"Error terminating game process: {e}")
-    
-    # Calculate fitness based on distance traveled and survival
-    fitness = max_x
-    
-    # Penalize excessive jumping
-    jump_penalty = 0
-    if jumps > max_x / 50:  # Arbitrary threshold
-        jump_penalty = (jumps - max_x / 50) * 10
-        fitness -= jump_penalty
-    
-    # Log evaluation results
-    logger.info(f"Genome {genome_id} evaluation complete:")
-    logger.info(f"  - Max distance: {max_x:.2f}")
-    logger.info(f"  - Jumps: {jumps}")
-    logger.info(f"  - Jump penalty: {jump_penalty:.2f}")
-    logger.info(f"  - Final fitness: {fitness:.2f}")
-    
-    # Save detailed genome run data
-    try:
-        genome_file = os.path.join(genome_data_dir, f"genome_{genome_id}_{int(fitness)}.json")
-        with open(genome_file, 'w') as f:
-            json.dump({
-                'genome_id': genome_id,
-                'fitness': fitness,
-                'max_x': max_x,
-                'jumps': jumps,
-                'frames': genome_log
-            }, f, indent=2)
-        logger.debug(f"Saved detailed genome data to {genome_file}")
+        win32gui.DeleteObject(save_bitmap.GetHandle())
+        save_dc.DeleteDC()
+        mfc_dc.DeleteDC()
+        win32gui.ReleaseDC(hwnd, hwnd_dc)
+        
+        return img
     except Exception as e:
-        logger.error(f"Failed to save genome data: {e}")
+        logger.error(f"Error capturing window image: {e}")
+        return None
+
+def is_death_detected(hwnd, num_frames=8, similarity_threshold=0.999):
+    """Detect death by checking for freeze frames"""
+    frames = []
     
-    return fitness
+    # Capture initial frames
+    for _ in range(num_frames):
+        img = capture_window_image(hwnd)
+        if img is None:
+            return False
+        frames.append(img)
+        time.sleep(0.05)  # Small delay between captures
+    
+    # Calculate similarity between consecutive frames
+    similarities = []
+    for i in range(1, len(frames)):
+        # Convert to grayscale for simpler comparison
+        prev_gray = cv2.cvtColor(frames[i-1], cv2.COLOR_BGR2GRAY)
+        curr_gray = cv2.cvtColor(frames[i], cv2.COLOR_BGR2GRAY)
+        
+        # Calculate similarity (normalized cross-correlation)
+        result = cv2.matchTemplate(prev_gray, curr_gray, cv2.TM_CCORR_NORMED)
+        similarity = result[0][0]
+        similarities.append(similarity)
+    
+    # Check if all similarities are above threshold
+    all_similar = all(sim >= similarity_threshold for sim in similarities)
+    
+    if all_similar:
+        logger.info(f"Death detected - screen frozen for {num_frames} frames")
+        return True
+    
+    return False
+
+def find_game_window():
+    """Find the OpenGD window with more robust detection"""
+    try:
+        # Try different possible window titles
+        window_titles = ["OpenGD", "OpenGD - Geometry Dash", "Geometry Dash"]
+        
+        for title in window_titles:
+            hwnd = win32gui.FindWindow(None, title)
+            if hwnd != 0:
+                logger.info(f"Found game window with title: {title}")
+                return hwnd
+                
+        # If not found by title, try finding by class
+        def callback(hwnd, hwnds):
+            if win32gui.IsWindowVisible(hwnd) and "OpenGD" in win32gui.GetWindowText(hwnd):
+                hwnds.append(hwnd)
+            return True
+            
+        hwnds = []
+        win32gui.EnumWindows(callback, hwnds)
+        
+        if hwnds:
+            logger.info(f"Found game window by partial title match")
+            return hwnds[0]
+            
+        logger.error("Game window not found")
+        return 0
+    except Exception as e:
+        logger.error(f"Error finding game window: {e}")
+        return 0
+
+def evaluate_genome(genomes, config):
+    """Evaluate the fitness of each genome"""
+    for genome_id, genome in genomes:
+        logger.info(f"===== Starting evaluation of genome {genome_id} =====")
+        
+        # Initialize fitness metrics outside the try block
+        max_x = 0
+        jumps = 0
+        
+        # Create neural network
+        net = neat.nn.FeedForwardNetwork.create(genome, config)
+        logger.info(f"Created neural network for genome {genome_id}")
+        
+        # Start game process (this will terminate any existing games)
+        logger.info(f"Starting game for genome {genome_id}...")
+        game_process = start_game()
+        if game_process is None:
+            logger.error("Failed to start game")
+            genome.fitness = 0
+            continue
+        
+        logger.info(f"Game process info: {game_process}")
+            
+        try:
+            # Navigate menus
+            logger.info("Attempting to click play button...")
+            if not click_play():
+                logger.error("Failed to enter play mode")
+                genome.fitness = 0
+                continue
+                
+            logger.info("Attempting to click level...")
+            if not click_level():
+                logger.error("Failed to select level")
+                genome.fitness = 0
+                continue
+            
+            # Get window handle for death detection
+            logger.info("Finding game window for death detection...")
+            hwnd = find_game_window()
+            if hwnd == 0:
+                logger.error("Could not find game window for death detection")
+                genome.fitness = 0
+                continue
+            logger.info(f"Found game window with handle: {hwnd}")
+            
+            # Clear position history
+            position_history.clear()
+            logger.info("Cleared position history")
+            
+            # Initialize timing variables
+            start_time = time.time()
+            last_jump_time = 0
+            
+            # Initialize frame comparison variables
+            prev_frame = None
+            similar_frames_count = 0
+            similarity_threshold = 0.999
+            
+            logger.info("Starting main game loop...")
+            # Main game loop
+            while True:
+                # Check for timeout
+                current_time = time.time()
+                elapsed = current_time - start_time
+                if elapsed > TIMEOUT_SECONDS:
+                    logger.info(f"Timeout reached for genome {genome_id} after {elapsed:.2f} seconds")
+                    break
+                    
+                # Get player position
+                position = get_player_position()
+                if position is None:
+                    time.sleep(0.05)
+                    continue
+                    
+                # Update history
+                update_position_history(position)
+                
+                # Check if player is dead from position data
+                if position['is_dead']:
+                    logger.info(f"Player death detected from position data at x={position['x']:.2f}")
+                    break
+                
+                # Capture current frame for death detection
+                current_frame = capture_window_image(hwnd)
+                if current_frame is not None and prev_frame is not None:
+                    # Convert to grayscale for simpler comparison
+                    prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
+                    curr_gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+                    
+                    # Calculate similarity (normalized cross-correlation)
+                    result = cv2.matchTemplate(prev_gray, curr_gray, cv2.TM_CCORR_NORMED)
+                    similarity = result[0][0]
+                    
+                    # Check for frozen frames (indicating death)
+                    if similarity >= similarity_threshold:
+                        similar_frames_count += 1
+                        if similar_frames_count >= 8:  # 8 consecutive similar frames
+                            logger.info(f"Death detected - screen frozen for {similar_frames_count} frames (similarity: {similarity:.6f})")
+                            break
+                    else:
+                        # Reset counter if frames are different
+                        similar_frames_count = 0
+                
+                # Update previous frame
+                prev_frame = current_frame
+                
+                # Update max_x for fitness
+                if position['x'] > max_x:
+                    max_x = position['x']
+                
+                # Prepare inputs for neural network
+                inputs = prepare_inputs()
+                if inputs is None:
+                    continue
+                    
+                # Get neural network output
+                output = net.activate(inputs)
+                
+                # Decide whether to jump
+                should_jump = output[0] > 0.5
+                
+                # Execute jump if needed (with cooldown to prevent spam)
+                if should_jump and current_time - last_jump_time > 0.2:
+                    win32api.keybd_event(win32con.VK_SPACE, 0, 0, 0)  # Space down
+                    time.sleep(0.05)
+                    win32api.keybd_event(win32con.VK_SPACE, 0, win32con.KEYEVENTF_KEYUP, 0)  # Space up
+                    jumps += 1
+                    last_jump_time = current_time
+                    logger.debug(f"Jump executed at x={position['x']:.2f}, y={position['y']:.2f}")
+                
+                time.sleep(0.05)  # Small delay to prevent CPU overuse
+                
+        except Exception as e:
+            logger.error(f"Error during evaluation of genome {genome_id}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+        finally:
+            # Clean up - terminate the game process and any other OpenGD processes
+            logger.info(f"Cleaning up after genome {genome_id} evaluation...")
+            try:
+                # First try to terminate the process we started
+                if game_process:
+                    logger.info(f"Terminating game process with PID: {game_process.pid if hasattr(game_process, 'pid') else 'unknown'}")
+                    game_process.terminate()
+                    logger.info("Game process terminate() called")
+                    time.sleep(1)
+                    
+                    # Check if process is still running
+                    if hasattr(game_process, 'poll'):
+                        exit_code = game_process.poll()
+                        if exit_code is None:
+                            logger.warning("Game process did not terminate, attempting to kill")
+                            game_process.kill()
+                            logger.info("Game process kill() called")
+                        else:
+                            logger.info(f"Game process terminated with exit code: {exit_code}")
+                
+                # Then make sure all OpenGD processes are terminated
+                logger.info("Ensuring all OpenGD processes are terminated...")
+                terminate_all_game_processes()
+            except Exception as e:
+                logger.error(f"Error terminating game processes: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        # Calculate fitness
+        fitness = max_x
+        
+        # Set the fitness for this genome
+        genome.fitness = fitness
+        
+        # Log evaluation results
+        logger.info(f"Genome {genome_id} evaluation complete:")
+        logger.info(f"  - Max distance: {max_x:.2f}")
+        logger.info(f"  - Jumps: {jumps}")
+        logger.info(f"  - Final fitness: {fitness:.2f}")
+        
+        # Save detailed genome run data
+        try:
+            genome_file = os.path.join(genome_data_dir, f"genome_{genome_id}_{int(fitness)}.json")
+            with open(genome_file, 'w') as f:
+                json.dump({
+                    'genome_id': genome_id,
+                    'fitness': fitness,
+                    'max_x': max_x,
+                    'jumps': jumps
+                }, f, indent=2)
+            logger.debug(f"Saved detailed genome data to {genome_file}")
+        except Exception as e:
+            logger.error(f"Failed to save genome data: {e}")
+            
+        logger.info(f"===== Completed evaluation of genome {genome_id} =====")
 
 def run_neat():
     """Run the NEAT algorithm to train the AI"""
@@ -380,6 +656,70 @@ def run_neat():
     except Exception as e:
         logger.error(f"Error during NEAT evolution: {e}")
         raise
+
+def click_play():
+    """Click the play button in the middle of the OpenGD window"""
+    try:
+        # Find the OpenGD window
+        hwnd = win32gui.FindWindow(None, "OpenGD")
+        if hwnd == 0:
+            logger.error("OpenGD window not found")
+            return False
+            
+        # Get window dimensions
+        rect = win32gui.GetWindowRect(hwnd)
+        width = rect[2] - rect[0]
+        height = rect[3] - rect[1]
+        
+        # Calculate center position
+        center_x = rect[0] + width // 2
+        center_y = rect[1] + height // 2
+        
+        # Click at center (play button)
+        win32api.SetCursorPos((center_x, center_y))
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        time.sleep(0.1)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        
+        logger.info(f"Clicked play button at ({center_x}, {center_y})")
+        time.sleep(1)  # Wait for menu transition
+        
+    except Exception as e:
+        logger.error(f"Failed to click play button: {e}")
+        return False
+    return True
+
+def click_level(level_number=1):
+    """Click the level button in the middle-top area of the OpenGD window"""
+    try:
+        # Find the OpenGD window
+        hwnd = win32gui.FindWindow(None, "OpenGD")
+        if hwnd == 0:
+            logger.error("OpenGD window not found")
+            return False
+            
+        # Get window dimensions
+        rect = win32gui.GetWindowRect(hwnd)
+        width = rect[2] - rect[0]
+        height = rect[3] - rect[1]
+        
+        # Calculate position (center horizontally, 40% from top vertically)
+        level_x = rect[0] + width // 2
+        level_y = rect[1] + int(height * 0.4)  # Slightly above center
+        
+        # Click at level position
+        win32api.SetCursorPos((level_x, level_y))
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        time.sleep(0.1)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        
+        logger.info(f"Clicked level {level_number} at ({level_x}, {level_y})")
+        time.sleep(2)  # Wait for level to load
+        
+    except Exception as e:
+        logger.error(f"Failed to click level: {e}")
+        return False
+    return True
 
 if __name__ == "__main__":
     logger.info("=" * 50)

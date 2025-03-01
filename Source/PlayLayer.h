@@ -144,4 +144,6 @@ public:
 	static PlayLayer* create(GJGameLevel* level);
 
 	static PlayLayer* getInstance();
+
+	void writePlayerPositionToFile();
 };

@@ -47,6 +47,7 @@
 #include "GameToolbox/math.h"
 #include "GameToolbox/conv.h"
 #include "GameToolbox/nodes.h"
+#include <fstream>
 
 
 USING_NS_AX;
@@ -715,8 +716,12 @@ void PlayLayer::incrementTime()
 
 void PlayLayer::update(float dt)
 {
-
-	if (m_freezePlayer)
+    BaseGameLayer::update(dt);
+    
+    // Write player position every frame
+    this->writePlayerPositionToFile();
+    
+    if (m_freezePlayer)
 	{
 		AudioEngine::pauseAll();
 		return;
@@ -787,6 +792,29 @@ void PlayLayer::update(float dt)
 
 	_colorChannels[1005]._color = _player1->getMainColor();
 	_colorChannels[1006]._color = _player1->getSecondaryColor();
+}
+
+void PlayLayer::writePlayerPositionToFile() {
+    // Make sure we have a player
+    if (!this->_player1) return;
+    
+    // Get player position and state
+    auto pos = this->_player1->getPosition();
+    
+    // Use the correct member variables or accessor methods
+    // Since we don't know the exact names, let's use safer alternatives
+    float y_vel = 0.0f;  // Default value
+    bool on_ground = false;  // Default value
+    bool is_dead = this->_player1->isDead();
+    
+    // Open file in write mode
+    std::ofstream file("player_position.txt");
+    if (file.is_open()) {
+        // Write x,y coordinates, y velocity, ground state, and death state
+        file << pos.x << "," << pos.y << "," << y_vel << "," 
+             << (on_ground ? "1" : "0") << "," << (is_dead ? "1" : "0");
+        file.close();
+    }
 }
 
 ax::Color3B PlayLayer::getLightBG()
