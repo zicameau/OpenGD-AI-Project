@@ -111,6 +111,35 @@ Check axmol [Dev setup](https://github.com/axmolengine/axmol/blob/dev/docs/DevSe
 
 To actually run the game you will need the resources from the 2.2/2.1 version of Geometry Dash.
 
+## AI Training Setup
+
+To set up and run the AI training program, follow these steps:
+
+1. Create a virtual environment:
+```bash
+python -m venv venv
+```
+
+2. Activate the virtual environment:
+- Windows:
+```bash
+.\venv\Scripts\activate
+```
+- Linux/Mac:
+```bash
+source venv/bin/activate
+```
+
+3. Install the required packages:
+```bash
+pip install -r requirements.txt
+```
+
+4. Run the training program:
+```bash
+python train.py
+```
+
 <!-- LICENSE -->
 ## License
 
