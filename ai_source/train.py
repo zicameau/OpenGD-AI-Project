@@ -123,204 +123,14 @@ def update_position_history(position):
         position_history.append(position)
 
 def prepare_inputs():
-<<<<<<< HEAD
-    """Convert position history to neural network inputs - simplified to just use x position"""
-    if not position_history or len(position_history) < 2:
-=======
     """Prepare inputs for the neural network"""
     if len(position_history) < 2:
->>>>>>> eca28ee80f1d6f0bd903266d871329e9156f6415
         return None
         
     # Get current and previous positions
     current = position_history[0]
     prev = position_history[1]
     
-<<<<<<< HEAD
-    # Get current and previous positions
-    current = position_history[-1]
-    prev = position_history[-2]
-    
-    # Add the 7 required inputs, but only use x position meaningfully
-    inputs = [
-        current['x'] / 1000.0,  # Normalized x position
-        0.0,  # Placeholder
-        0.0,  # Placeholder
-        0.0,  # Placeholder
-        0.0,  # Placeholder
-        0.0,  # Placeholder
-        0.0   # Placeholder
-    ]
-    
-    # Ensure we have exactly 7 inputs
-    assert len(inputs) == 7, f"Expected 7 inputs, got {len(inputs)}"
-    
-    return inputs
-
-def click_at(x, y, delay=0.1):
-    """Click at the specified screen coordinates"""
-    try:
-        # Move mouse to position
-        win32api.SetCursorPos((x, y))
-        time.sleep(delay)
-        
-        # Left mouse button down
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        time.sleep(delay)
-        
-        # Left mouse button up
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-        time.sleep(delay)
-        
-        logger.debug(f"Clicked at position ({x}, {y})")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to click at position ({x}, {y}): {e}")
-        return False
-
-def find_game_window():
-    """Find the OpenGD game window and return its handle"""
-    try:
-        # Find window by title (partial match)
-        window_handle = win32gui.FindWindow(None, "OpenGD")
-        
-        if window_handle == 0:
-            # Try alternative window titles
-            window_handle = win32gui.FindWindow(None, "Geometry Dash")
-            
-        if window_handle == 0:
-            # Try finding any window with OpenGD in the title
-            def callback(hwnd, windows):
-                if "OpenGD" in win32gui.GetWindowText(hwnd):
-                    windows.append(hwnd)
-                return True
-                
-            windows = []
-            win32gui.EnumWindows(callback, windows)
-            
-            if windows:
-                window_handle = windows[0]
-        
-        if window_handle != 0:
-            logger.info(f"Found game window with handle: {window_handle}")
-            return window_handle
-        else:
-            logger.error("Could not find game window")
-            return None
-    except Exception as e:
-        logger.error(f"Error finding game window: {e}")
-        return None
-
-def get_window_center(window_handle):
-    """Get the center coordinates of a window"""
-    try:
-        # Get window rect
-        left, top, right, bottom = win32gui.GetWindowRect(window_handle)
-        width = right - left
-        height = bottom - top
-        
-        # Calculate center
-        center_x = left + width // 2
-        center_y = top + height // 2
-        
-        logger.debug(f"Window dimensions: {width}x{height}, Center: ({center_x}, {center_y})")
-        return center_x, center_y
-    except Exception as e:
-        logger.error(f"Error getting window center: {e}")
-        return None
-
-def activate_window(window_handle):
-    """Bring the window to the foreground"""
-    try:
-        # Check if window is minimized
-        if win32gui.IsIconic(window_handle):
-            # Restore the window
-            win32gui.ShowWindow(window_handle, win32con.SW_RESTORE)
-            
-        # Bring to foreground
-        win32gui.SetForegroundWindow(window_handle)
-        
-        # Wait for window to activate
-        time.sleep(0.5)
-        
-        logger.debug("Window activated")
-        return True
-    except Exception as e:
-        logger.error(f"Error activating window: {e}")
-        return False
-
-def click_relative(window_handle, x_percent, y_percent):
-    """Click at a position relative to window size (percentages)"""
-    try:
-        # Get window rect
-        left, top, right, bottom = win32gui.GetWindowRect(window_handle)
-        width = right - left
-        height = bottom - top
-        
-        # Calculate absolute position
-        x = left + int(width * x_percent)
-        y = top + int(height * y_percent)
-        
-        # Click at position
-        logger.debug(f"Clicking at relative position ({x_percent*100}%, {y_percent*100}%) -> ({x}, {y})")
-        return click_at(x, y)
-    except Exception as e:
-        logger.error(f"Error clicking at relative position: {e}")
-        return False
-
-def click_play(window_handle):
-    """Click the play button in the center of the window"""
-    logger.info("Clicking play button")
-    
-    # Activate window
-    if not activate_window(window_handle):
-        return False
-    
-    # Wait for game to load
-    time.sleep(2)
-    
-    # Click at the center of the window (play button is usually centered)
-    return click_relative(window_handle, 0.5, 0.5)
-
-def click_level(window_handle):
-    """Click to select the first level"""
-    logger.info("Clicking level selection")
-    
-    # Wait for menu to appear
-    time.sleep(1)
-    
-    # Click at the position of the first level (adjust percentages as needed)
-    # This is approximately where the first level would be
-    return click_relative(window_handle, 0.5, 0.3)
-
-def start_game():
-    """Start the game and navigate to gameplay"""
-    try:
-        # Start the game process
-        logger.info(f"Starting game from: {GAME_PATH}")
-        game_process = subprocess.Popen([GAME_PATH])
-        
-        # Wait for game window to appear
-        time.sleep(3)
-        
-        # Find game window
-        window_handle = find_game_window()
-        if window_handle is None:
-            logger.error("Could not find game window")
-            return None
-            
-        # Click through menus
-        if not click_play(window_handle):
-            logger.error("Failed to click play button")
-            return None
-            
-        if not click_level(window_handle):
-            logger.error("Failed to click level")
-            return None
-            
-        # Wait for level to load
-        time.sleep(2)
-=======
     # Calculate velocity
     dx = current['x'] - prev['x']
     dy = current['y'] - prev['y']
@@ -445,8 +255,8 @@ def start_game():
         
         # Start the game using just the executable name
         logger.info(f"Launching executable: {executable}")
-        process = subprocess.Popen(executable, shell=True)
-        logger.info(f"Game process started with PID: {process.pid if hasattr(process, 'pid') else 'unknown'}")
+        game_process = subprocess.Popen(executable, shell=True)
+        logger.info(f"Game process started with PID: {game_process.pid if hasattr(game_process, 'pid') else 'unknown'}")
         
         logger.info("Waiting 5 seconds for game to initialize...")
         time.sleep(5)  # Wait for game to start
@@ -454,7 +264,6 @@ def start_game():
         # Change back to original directory
         os.chdir(original_dir)
         logger.info(f"Changed back to original directory: {original_dir}")
->>>>>>> eca28ee80f1d6f0bd903266d871329e9156f6415
         
         logger.info("Game started successfully")
         return game_process
@@ -501,145 +310,6 @@ def log_decision(inputs, output, should_jump, position):
         logger.debug(f"Network inputs: {inputs}")
         logger.debug(f"Network output: {output[0]:.4f}, Decision: {'JUMP' if should_jump else 'NO JUMP'}")
 
-<<<<<<< HEAD
-def evaluate_genomes(genomes, config):
-    """Evaluate all genomes in the population sequentially"""
-    logger.info(f"Evaluating {len(genomes)} genomes sequentially")
-    
-    for i, (genome_id, genome) in enumerate(genomes):
-        logger.info(f"Evaluating genome {i+1}/{len(genomes)} (ID: {genome_id})")
-        genome.fitness = evaluate_genome(genome_id, genome, config)
-        
-        # Add a small delay between evaluations to ensure clean process termination
-        time.sleep(2)
-
-def evaluate_genome(genome_id, genome, config):
-    """Evaluate a single genome"""
-    logger.info(f"Evaluating genome {genome_id}")
-    
-    # Create neural network from genome
-    net = neat.nn.FeedForwardNetwork.create(genome, config)
-    
-    # Start game
-    logger.info(f"Starting game for genome {genome_id}")
-    game_process = start_game()
-    if game_process is None:
-        logger.error("Failed to start game, skipping genome evaluation")
-        return 0
-    
-    # Clear position history
-    position_history.clear()
-    
-    # Track fitness metrics
-    max_x = 0
-    start_time = time.time()
-    jumps = 0
-    last_jump_time = 0
-    
-    # Create a log for this genome's run
-    genome_log = []
-    
-    # Debug: Check if position file exists before starting
-    logger.info(f"Looking for position file at: {POSITION_FILE}")
-    if os.path.exists(POSITION_FILE):
-        logger.info(f"Position file found before game start")
-    else:
-        logger.info(f"Position file not found before game start")
-    
-    # Wait a moment for the game to initialize
-    logger.info("Waiting for game to initialize...")
-    time.sleep(3)
-    
-    try:
-        # Debug: Check if position file exists after waiting
-        if os.path.exists(POSITION_FILE):
-            logger.info(f"Position file found after waiting")
-            with open(POSITION_FILE, 'r') as f:
-                logger.info(f"Initial file content: {f.read().strip()}")
-        else:
-            logger.info(f"Position file still not found after waiting")
-        
-        # Main game loop
-        frame_count = 0
-        position_read_count = 0
-        logger.info("Starting main evaluation loop")
-        
-        while True:
-            frame_count += 1
-            
-            # Check for timeout
-            current_time = time.time()
-            elapsed = current_time - start_time
-            if elapsed > TIMEOUT_SECONDS:
-                logger.info(f"Timeout reached for genome {genome_id} after {elapsed:.2f} seconds")
-                break
-                
-            # Get player position
-            position = get_player_position()
-            if position is None:
-                if frame_count % 20 == 0:  # Only log every 20 frames to avoid spam
-                    logger.debug(f"No position data available (frame {frame_count})")
-                time.sleep(0.05)
-                continue
-            
-            position_read_count += 1
-            if position_read_count == 1:
-                logger.info(f"First position data received: x={position['x']:.2f}, y={position['y']:.2f}")
-                
-            # Update history
-            update_position_history(position)
-            
-            # Check if player is dead
-            if position['is_dead']:
-                logger.info(f"Player died at x={position['x']:.2f}, y={position['y']:.2f}")
-                break
-                
-            # Update max_x for fitness
-            if position['x'] > max_x:
-                if int(position['x']) % 100 == 0:  # Log every 100 units
-                    logger.info(f"Reached x={position['x']:.2f}")
-                max_x = position['x']
-                
-            # Prepare inputs for neural network
-            inputs = prepare_inputs()
-            if inputs is None or len(position_history) < 2:  # Need at least 2 positions for meaningful input
-                logger.debug("Insufficient position history for inputs")
-                continue
-                
-            # Get neural network output
-            output = net.activate(inputs)
-            
-            # Decide whether to jump
-            should_jump = output[0] > 0.5
-            
-            # Log decision details (every 10 frames to avoid spam)
-            if frame_count % 10 == 0:
-                logger.debug(f"Network output: {output[0]:.4f}, Should jump: {should_jump}")
-            
-            # Execute jump if needed (with cooldown to prevent spam)
-            if should_jump and current_time - last_jump_time > 0.2:
-                logger.info(f"Jumping at x={position['x']:.2f}, y={position['y']:.2f}, output={output[0]:.4f}")
-                press_space()  # Use our win32api function
-                jumps += 1
-                last_jump_time = current_time
-                
-            # Record this frame's data
-            genome_log.append({
-                'time': elapsed,
-                'x': position['x'],
-                'y': position['y'],
-                'y_vel': position['y_vel'],
-                'on_ground': position['on_ground'],
-                'output': float(output[0]),  # Convert numpy float to Python float for JSON serialization
-                'jumped': should_jump and current_time - last_jump_time <= 0.2
-            })
-                
-            time.sleep(0.05)  # Small delay to prevent CPU overuse
-            
-    except Exception as e:
-        logger.error(f"Error during evaluation of genome {genome_id}: {e}", exc_info=True)
-    finally:
-=======
 def capture_window_image(hwnd):
     """Capture a screenshot of the specified window"""
     try:
@@ -668,7 +338,6 @@ def capture_window_image(hwnd):
         img.shape = (bmpinfo['bmHeight'], bmpinfo['bmWidth'], 4)
         img = img[:, :, :3]  # Remove alpha channel
         
->>>>>>> eca28ee80f1d6f0bd903266d871329e9156f6415
         # Clean up
         win32gui.DeleteObject(save_bitmap.GetHandle())
         save_dc.DeleteDC()
@@ -744,7 +413,7 @@ def find_game_window():
         logger.error(f"Error finding game window: {e}")
         return 0
 
-def evaluate_genome(genomes, config):
+def evaluate_genomes(genomes, config):
     """Evaluate the fitness of each genome"""
     for genome_id, genome in genomes:
         logger.info(f"===== Starting evaluation of genome {genome_id} =====")
